@@ -17,6 +17,10 @@ export default function App() {
           </NavigationContainer>
         </LanguageProvider>
       </ThemeProvider>
+      <StatusBar barStyle="light-content" />
+      <NavigationContainer>
+        <AppNavigator />
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 }

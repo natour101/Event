@@ -53,6 +53,8 @@ export function LanguageProvider({ children }) {
       if (primary) return primary;
       const fallback = getNestedValue(translations[LANGUAGE.ar], key);
       return fallback || '';
+      const value = getNestedValue(translations[language], key);
+      return value || key;
     },
     [language]
   );
@@ -91,4 +93,5 @@ export function LanguageProvider({ children }) {
 
 export function useLanguage() {
   return useContext(LanguageContext) || defaultLanguageState;
+  return useContext(LanguageContext);
 }
