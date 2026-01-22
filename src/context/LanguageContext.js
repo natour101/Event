@@ -12,6 +12,16 @@ import ar from '../locales/ar';
 import en from '../locales/en';
 import { LANGUAGE, STORAGE_KEYS } from '../constants/strings';
 
+const defaultLanguageState = {
+  language: LANGUAGE.ar,
+  isRTL: true,
+  t: key => key,
+  toggleLanguage: () => {},
+  loadLanguage: () => {},
+};
+
+const LanguageContext = createContext(defaultLanguageState);
+
 const translations = {
   [LANGUAGE.ar]: ar,
   [LANGUAGE.en]: en,
@@ -58,6 +68,8 @@ export function LanguageProvider({ children }) {
       if (primary) return primary;
       const fallback = getNestedValue(translations[LANGUAGE.ar], key);
       return fallback || '';
+      const value = getNestedValue(translations[language], key);
+      return value || key;
     },
     [language]
   );
@@ -96,4 +108,5 @@ export function LanguageProvider({ children }) {
 
 export function useLanguage() {
   return useContext(LanguageContext) || defaultLanguageState;
+  return useContext(LanguageContext);
 }
