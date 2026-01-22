@@ -20,6 +20,7 @@ const defaultLanguageState = {
 };
 
 const LanguageContext = createContext(defaultLanguageState);
+const LanguageContext = createContext(null);
 
 const translations = {
   [LANGUAGE.ar]: ar,
@@ -70,4 +71,5 @@ export function LanguageProvider({ children }) {
 
 export function useLanguage() {
   return useContext(LanguageContext) || defaultLanguageState;
+  return useContext(LanguageContext);
 }

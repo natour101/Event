@@ -18,6 +18,7 @@ const defaultThemeState = {
 };
 
 const ThemeContext = createContext(defaultThemeState);
+const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
   const [mode, setMode] = useState('dark');
@@ -51,4 +52,5 @@ export function ThemeProvider({ children }) {
 
 export function useTheme() {
   return useContext(ThemeContext) || defaultThemeState;
+  return useContext(ThemeContext);
 }
