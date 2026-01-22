@@ -20,7 +20,6 @@ const defaultLanguageState = {
 };
 
 const LanguageContext = createContext(defaultLanguageState);
-const LanguageContext = createContext(null);
 
 const translations = {
   [LANGUAGE.ar]: ar,

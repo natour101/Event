@@ -18,7 +18,6 @@ const defaultThemeState = {
 };
 
 const ThemeContext = createContext(defaultThemeState);
-const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
   const [mode, setMode] = useState('dark');
