@@ -42,6 +42,21 @@ const getNestedValue = (obj, path) => {
   return path.split('.').reduce((acc, key) => (acc ? acc[key] : null), obj);
 };
 
+const fallbackTranslate = key => {
+  const value = getNestedValue(translations[LANGUAGE.ar], key);
+  return value || '';
+};
+
+const defaultLanguageState = {
+  language: LANGUAGE.ar,
+  isRTL: true,
+  t: fallbackTranslate,
+  toggleLanguage: () => {},
+  loadLanguage: () => {},
+};
+
+const LanguageContext = createContext(defaultLanguageState);
+
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(LANGUAGE.ar);
 
