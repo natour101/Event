@@ -11,6 +11,15 @@ import ar from '../locales/ar';
 import en from '../locales/en';
 import { LANGUAGE, STORAGE_KEYS } from '../constants/strings';
 
+const defaultLanguageState = {
+  language: LANGUAGE.ar,
+  isRTL: true,
+  t: key => key,
+  toggleLanguage: () => {},
+  loadLanguage: () => {},
+};
+
+const LanguageContext = createContext(defaultLanguageState);
 const LanguageContext = createContext(null);
 
 const translations = {
@@ -61,5 +70,6 @@ export function LanguageProvider({ children }) {
 }
 
 export function useLanguage() {
+  return useContext(LanguageContext) || defaultLanguageState;
   return useContext(LanguageContext);
 }

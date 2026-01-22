@@ -10,6 +10,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { buildTheme } from '../constants/theme';
 import { STORAGE_KEYS } from '../constants/strings';
 
+const defaultThemeState = {
+  mode: 'dark',
+  theme: buildTheme('dark'),
+  toggleMode: () => {},
+  loadTheme: () => {},
+};
+
+const ThemeContext = createContext(defaultThemeState);
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
@@ -43,5 +51,6 @@ export function ThemeProvider({ children }) {
 }
 
 export function useTheme() {
+  return useContext(ThemeContext) || defaultThemeState;
   return useContext(ThemeContext);
 }
