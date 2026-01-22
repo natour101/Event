@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NativeModules, Platform } from 'react-native';
 import ar from '../locales/ar';
 import en from '../locales/en';
 import { LANGUAGE, STORAGE_KEYS } from '../constants/strings';
@@ -26,6 +27,17 @@ const translations = {
   [LANGUAGE.en]: en,
 };
 
+const getDeviceLanguage = () => {
+  if (Platform.OS === 'ios') {
+    const settings = NativeModules.SettingsManager?.settings;
+    const locale =
+      settings?.AppleLocale || (settings?.AppleLanguages || [])[0] || '';
+    return locale;
+  }
+  const locale = NativeModules.I18nManager?.localeIdentifier || '';
+  return locale;
+};
+
 const getNestedValue = (obj, path) => {
   return path.split('.').reduce((acc, key) => (acc ? acc[key] : null), obj);
 };
@@ -37,6 +49,10 @@ export function LanguageProvider({ children }) {
 
   const t = useCallback(
     key => {
+      const primary = getNestedValue(translations[language], key);
+      if (primary) return primary;
+      const fallback = getNestedValue(translations[LANGUAGE.ar], key);
+      return fallback || '';
       const value = getNestedValue(translations[language], key);
       return value || key;
     },
@@ -53,6 +69,13 @@ export function LanguageProvider({ children }) {
     const stored = await AsyncStorage.getItem(STORAGE_KEYS.language);
     if (stored) {
       setLanguage(stored);
+      return;
+    }
+    const deviceLanguage = getDeviceLanguage();
+    if (deviceLanguage?.toLowerCase().startsWith('en')) {
+      setLanguage(LANGUAGE.en);
+    } else {
+      setLanguage(LANGUAGE.ar);
     }
   }, []);
 
