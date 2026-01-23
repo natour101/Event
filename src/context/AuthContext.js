@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { authApi } from '../services/api';
+import { api, authApi } from '../services/api';
 import { registerDeviceToken } from '../services/notifications';
 import { getJson, removeItem, saveJson, STORAGE_KEYS } from '../utils/storage';
 
@@ -17,6 +17,7 @@ const defaultAuthState = {
   login: async () => {},
   register: async () => {},
   logout: async () => {},
+  updateUser: async () => {},
 };
 
 const AuthContext = createContext(defaultAuthState);
@@ -33,8 +34,9 @@ export function AuthProvider({ children }) {
     setToken(storedToken);
     if (storedToken) {
       try {
-        const result = await authApi.me(storedToken);
-        const freshUser = result.user || result.data || storedUser;
+        api.setToken(storedToken);
+        const result = await authApi.me();
+        const freshUser = result.data?.user || storedUser;
         setUser(freshUser);
         if (freshUser) {
           await saveJson(STORAGE_KEYS.user, freshUser);
@@ -61,8 +63,8 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async payload => {
     const result = await authApi.login(payload);
-    const nextUser = result.user || result.data || null;
-    const nextToken = result.token || result.access_token || null;
+    const nextUser = result.data?.user || null;
+    const nextToken = result.data?.token || result.token || null;
     if (nextUser) {
       await saveJson(STORAGE_KEYS.user, nextUser);
     }
@@ -71,13 +73,14 @@ export function AuthProvider({ children }) {
     }
     setUser(nextUser);
     setToken(nextToken);
+    api.setToken(nextToken);
     return result;
   }, []);
 
   const register = useCallback(async payload => {
     const result = await authApi.register(payload);
-    const nextUser = result.user || result.data || null;
-    const nextToken = result.token || result.access_token || null;
+    const nextUser = result.data?.user || null;
+    const nextToken = result.data?.token || result.token || null;
     if (nextUser) {
       await saveJson(STORAGE_KEYS.user, nextUser);
     }
@@ -86,13 +89,15 @@ export function AuthProvider({ children }) {
     }
     setUser(nextUser);
     setToken(nextToken);
+    api.setToken(nextToken);
     return result;
   }, []);
 
   const logout = useCallback(async () => {
     if (token) {
       try {
-        await authApi.logout(token);
+        api.setToken(token);
+        await authApi.logout();
       } catch (error) {
         // ignore network logout errors
       }
@@ -101,11 +106,19 @@ export function AuthProvider({ children }) {
     await removeItem(STORAGE_KEYS.token);
     setUser(null);
     setToken(null);
+    api.setToken(null);
   }, [token]);
 
+  const updateUser = useCallback(async nextUser => {
+    setUser(nextUser);
+    if (nextUser) {
+      await saveJson(STORAGE_KEYS.user, nextUser);
+    }
+  }, []);
+
   const value = useMemo(
-    () => ({ user, token, loading, login, register, logout }),
-    [user, token, loading, login, register, logout]
+    () => ({ user, token, loading, login, register, logout, updateUser }),
+    [user, token, loading, login, register, logout, updateUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

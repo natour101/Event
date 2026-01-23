@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-class LoginRequest extends ApiFormRequest
+class UpdatePasswordRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
@@ -12,8 +12,8 @@ class LoginRequest extends ApiFormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
         ];
     }
 }
