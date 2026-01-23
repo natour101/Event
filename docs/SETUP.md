@@ -20,6 +20,14 @@ php artisan migrate --seed
 php artisan storage:link
 ```
 
+> If you previously had a duplicate migration named
+> `2026_01_23_144048_create_personal_access_tokens_table.php`, delete it and clear the migration record:
+> ```bash
+> rm -f database/migrations/2026_01_23_144048_create_personal_access_tokens_table.php
+> php artisan migrate:rollback --step=1
+> php artisan migrate --seed
+> ```
+
 4. Run the server
 ```bash
 php artisan serve
@@ -44,6 +52,13 @@ curl -X POST http://localhost:8000/api/events ^
   -H "Authorization: Bearer TOKEN" ^ 
   -H "Content-Type: application/json" ^ 
   -d "{\"title\":\"Riyadh Music Festival\",\"location\":\"Riyadh Boulevard\"}"
+```
+
+### Windows cleanup for duplicate migration (CMD)
+```cmd
+del database\\migrations\\2026_01_23_144048_create_personal_access_tokens_table.php
+php artisan migrate:rollback --step=1
+php artisan migrate --seed
 ```
 
 ### Ngrok
