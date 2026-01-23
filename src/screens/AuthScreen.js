@@ -80,8 +80,18 @@ export default function AuthScreen({ navigation, route }) {
       }
       navigation.replace('Main');
     } catch (error) {
-      setSubmitError(error.message || 'Request failed');
-    } finally {
+  console.log('AUTH ERROR:', error);
+  console.log('AUTH ERROR DATA:', error?.response?.data);
+  console.log('AUTH ERROR STATUS:', error?.response?.status);
+
+  setSubmitError(
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    'Request failed'
+  );
+}
+finally {
       setSubmitting(false);
     }
   };
