@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import {
   ImageBackground,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -26,31 +27,37 @@ export default function WelcomeScreen({ navigation }) {
     >
       <View style={styles.overlay} />
       <SafeAreaView style={styles.container}>
-        <View style={styles.centerContent}>
-          <View style={styles.logo}>
-            <Icon name="ticket-confirmation" size={30} color={theme.text} />
-          </View>
-          <Text style={styles.title}>{t('welcome.title')}</Text>
-          <Text style={styles.subtitle}>{t('welcome.subtitle')}</Text>
-        </View>
-        <View style={styles.actions}>
-          <PrimaryButton
-            label={t('common.register')}
-            onPress={() => navigation.navigate('Auth', { mode: 'register' })}
-          />
-          <PrimaryButton
-            label={t('common.login')}
-            variant="secondary"
-            onPress={() => navigation.navigate('Auth', { mode: 'login' })}
-          />
-          <View style={styles.languageRow}>
-            <Icon name="earth" size={16} color={theme.muted} />
-            <Text style={styles.languageText} onPress={toggleLanguage}>
-              {t('welcome.changeLanguage')}{' '}
-              {language === 'ar' ? t('common.english') : t('common.arabic')}
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.centerContent}>
+            <View style={styles.logo}>
+              <Icon name="ticket-confirmation" size={30} color={theme.text} />
+            </View>
+            <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
+              {t('welcome.title')}
+            </Text>
+            <Text style={styles.subtitle} numberOfLines={3} ellipsizeMode="tail">
+              {t('welcome.subtitle')}
             </Text>
           </View>
-        </View>
+          <View style={styles.actions}>
+            <PrimaryButton
+              label={t('common.register')}
+              onPress={() => navigation.navigate('Auth', { mode: 'register' })}
+            />
+            <PrimaryButton
+              label={t('common.login')}
+              variant="secondary"
+              onPress={() => navigation.navigate('Auth', { mode: 'login' })}
+            />
+            <View style={styles.languageRow}>
+              <Icon name="earth" size={16} color={theme.muted} />
+              <Text style={styles.languageText} onPress={toggleLanguage}>
+                {t('welcome.changeLanguage')}{' '}
+                {language === 'ar' ? t('common.english') : t('common.arabic')}
+              </Text>
+            </View>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </ImageBackground>
   );
@@ -69,6 +76,12 @@ const createStyles = (theme, isRTL) =>
       flex: 1,
       justifyContent: 'space-between',
       padding: 24,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'space-between',
+      gap: 20,
+      paddingBottom: 20,
     },
     centerContent: {
       marginTop: 90,
@@ -99,6 +112,7 @@ const createStyles = (theme, isRTL) =>
       textAlign: 'center',
       fontSize: 15,
       lineHeight: 22,
+      flexShrink: 1,
     },
     actions: {
       gap: 14,

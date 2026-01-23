@@ -13,6 +13,7 @@ import TournamentsScreen from '../screens/TournamentsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -89,8 +90,17 @@ function MainTabs() {
 }
 
 export default function AppNavigator() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
+
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName={user ? 'Main' : 'Welcome'}
+    >
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Auth" component={AuthScreen} />
       <Stack.Screen name="Main" component={MainTabs} />

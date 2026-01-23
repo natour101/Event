@@ -20,8 +20,12 @@ export default function EventCard({ event, style, actionLabel }) {
         </View>
       </ImageBackground>
       <View style={styles.content}>
-        <Text style={styles.title}>{event.title}</Text>
-        <Text style={styles.subtitle}>{event.subtitle}</Text>
+        <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+          {event.title}
+        </Text>
+        <Text style={styles.subtitle} numberOfLines={2} ellipsizeMode="tail">
+          {event.subtitle}
+        </Text>
         <View style={styles.footer}>
           <Text style={styles.date}>{event.date}</Text>
           {actionLabel ? (

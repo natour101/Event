@@ -10,8 +10,14 @@ export default function SectionHeader({ title, action }) {
 
   return (
     <View style={styles.wrapper}>
-      {action ? <Text style={styles.action}>{action}</Text> : null}
-      <Text style={styles.title}>{title}</Text>
+      {action ? (
+        <Text style={styles.action} numberOfLines={1} ellipsizeMode="tail">
+          {action}
+        </Text>
+      ) : null}
+      <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+        {title}
+      </Text>
     </View>
   );
 }
@@ -27,10 +33,12 @@ const createStyles = (theme, isRTL) =>
       color: theme.text,
       fontSize: 18,
       fontWeight: '700',
+      flexShrink: 1,
     },
     action: {
       color: theme.accent,
       fontSize: 13,
       fontWeight: '600',
+      flexShrink: 1,
     },
   });

@@ -116,6 +116,13 @@ export default {
     name: 'سارة عبدالله',
     role: 'مشرفة فعاليات',
     themeToggle: 'تبديل الثيم',
+    accountSettings: 'إعدادات الحساب',
+    language: 'اللغة',
+    theme: 'الثيم',
+    logout: 'تسجيل خروج',
+    email: 'البريد الإلكتروني',
+    phone: 'رقم الهاتف',
+    username: 'اسم المستخدم',
   },
   categories: {
     all: 'الكل',

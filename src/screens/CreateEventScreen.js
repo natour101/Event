@@ -1,5 +1,12 @@
 import React, { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import CategoryPill from '../components/CategoryPill';
 import Icon from '../components/Icon';
 import InputField from '../components/InputField';
@@ -14,74 +21,87 @@ export default function CreateEventScreen() {
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <ScreenHeader
-        title={t('create.title')}
-        rightElement={<Icon name="arrow-left" size={18} color={theme.text} />}
-      />
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <ScreenHeader
+          title={t('create.title')}
+          rightElement={<Icon name="arrow-left" size={18} color={theme.text} />}
+        />
 
-      <View style={styles.uploadBox}>
-        <View style={styles.uploadIconWrap}>
-          <Icon name="image-plus" size={24} color={theme.accent} />
+        <View style={styles.uploadBox}>
+          <View style={styles.uploadIconWrap}>
+            <Icon name="image-plus" size={24} color={theme.accent} />
+          </View>
+          <Text style={styles.uploadTitle} numberOfLines={1} ellipsizeMode="tail">
+            {t('create.cover')}
+          </Text>
+          <Text style={styles.uploadSubtitle} numberOfLines={2} ellipsizeMode="tail">
+            {t('create.coverHint')}
+          </Text>
+          <PrimaryButton label={t('create.upload')} variant="secondary" />
         </View>
-        <Text style={styles.uploadTitle}>{t('create.cover')}</Text>
-        <Text style={styles.uploadSubtitle}>{t('create.coverHint')}</Text>
-        <PrimaryButton label={t('create.upload')} variant="secondary" />
-      </View>
 
-      <InputField label={t('create.name')} placeholder={t('create.name')} />
+        <InputField label={t('create.name')} placeholder={t('create.name')} />
 
-      <Text style={styles.sectionLabel}>{t('create.category')}</Text>
-      <View style={styles.categoryRow}>
-        {[t('categories.tech'), t('categories.business'), t('categories.fun'), t('categories.arts'), t('categories.sports')].map(
-          (item, index) => (
+        <Text style={styles.sectionLabel}>{t('create.category')}</Text>
+        <View style={styles.categoryRow}>
+          {[
+            t('categories.tech'),
+            t('categories.business'),
+            t('categories.fun'),
+            t('categories.arts'),
+            t('categories.sports'),
+          ].map((item, index) => (
             <CategoryPill key={item} label={item} active={index === 0} />
-          )
-        )}
-      </View>
+          ))}
+        </View>
 
-      <InputField
-        label={t('create.description')}
-        placeholder={t('create.descriptionHint')}
-        multiline
-        inputStyle={styles.textArea}
-      />
-
-      <View style={styles.row}>
         <InputField
-          label={t('create.date')}
-          placeholder={t('create.datePlaceholder')}
-          containerStyle={styles.flex}
+          label={t('create.description')}
+          placeholder={t('create.descriptionHint')}
+          multiline
+          inputStyle={styles.textArea}
         />
+
+        <View style={styles.row}>
+          <InputField
+            label={t('create.date')}
+            placeholder={t('create.datePlaceholder')}
+            containerStyle={styles.flex}
+          />
+          <InputField
+            label={t('create.time')}
+            placeholder={t('create.timePlaceholder')}
+            containerStyle={styles.flex}
+          />
+        </View>
+
+        <PrimaryButton label={t('create.publish')} />
+
         <InputField
-          label={t('create.time')}
-          placeholder={t('create.timePlaceholder')}
-          containerStyle={styles.flex}
+          label={t('create.locationSearch')}
+          placeholder={t('create.locationPlaceholder')}
         />
-      </View>
+        <View style={styles.mapBox}>
+          <Icon name="map-marker-outline" size={18} color={theme.muted} />
+          <Text style={styles.mapText}>{t('create.mapPreview')}</Text>
+        </View>
 
-      <PrimaryButton label={t('create.publish')} />
+        <Text style={styles.sectionLabel}>{t('create.ticketType')}</Text>
+        <View style={styles.ticketRow}>
+          <CategoryPill label={t('create.paid')} active />
+          <CategoryPill label={t('create.free')} />
+        </View>
 
-      <InputField
-        label={t('create.locationSearch')}
-        placeholder={t('create.locationPlaceholder')}
-      />
-      <View style={styles.mapBox}>
-        <Icon name="map-marker-outline" size={18} color={theme.muted} />
-        <Text style={styles.mapText}>{t('create.mapPreview')}</Text>
-      </View>
-
-      <Text style={styles.sectionLabel}>{t('create.ticketType')}</Text>
-      <View style={styles.ticketRow}>
-        <CategoryPill label={t('create.paid')} active />
-        <CategoryPill label={t('create.free')} />
-      </View>
-
-      <InputField
-        label={t('create.price')}
-        placeholder={t('create.pricePlaceholder')}
-      />
-    </ScrollView>
+        <InputField
+          label={t('create.price')}
+          placeholder={t('create.pricePlaceholder')}
+        />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -94,6 +114,7 @@ const createStyles = (theme, isRTL) =>
     content: {
       padding: 20,
       gap: 16,
+      paddingBottom: 32,
     },
     uploadBox: {
       borderRadius: 18,
@@ -122,6 +143,7 @@ const createStyles = (theme, isRTL) =>
       color: theme.muted,
       fontSize: 12,
       textAlign: 'center',
+      flexShrink: 1,
     },
     sectionLabel: {
       color: theme.text,

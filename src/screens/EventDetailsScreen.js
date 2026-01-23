@@ -52,7 +52,9 @@ export default function EventDetailsScreen() {
         </View>
         <View style={styles.hostInfo}>
           <Text style={styles.hostLabel}>{t('eventDetails.organizer')}</Text>
-          <Text style={styles.hostName}>{detailData.host}</Text>
+          <Text style={styles.hostName} numberOfLines={1} ellipsizeMode="tail">
+            {detailData.host}
+          </Text>
         </View>
         <PrimaryButton label={t('common.follow')} variant="secondary" />
       </View>
@@ -158,6 +160,7 @@ const createStyles = (theme, isRTL) =>
       fontSize: 14,
       fontWeight: '700',
       marginTop: 4,
+      flexShrink: 1,
     },
     card: {
       backgroundColor: theme.surface,
@@ -176,6 +179,7 @@ const createStyles = (theme, isRTL) =>
       fontSize: 13,
       lineHeight: 20,
       textAlign: isRTL ? 'right' : 'left',
+      flexShrink: 1,
     },
     cardLink: {
       color: theme.accent,

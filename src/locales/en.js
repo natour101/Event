@@ -116,6 +116,13 @@ export default {
     name: 'Sara Abdullah',
     role: 'Event manager',
     themeToggle: 'Toggle theme',
+    accountSettings: 'Account settings',
+    language: 'Language',
+    theme: 'Theme',
+    logout: 'Log out',
+    email: 'Email',
+    phone: 'Phone',
+    username: 'Username',
   },
   categories: {
     all: 'All',

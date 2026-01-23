@@ -10,9 +10,15 @@ export default function ScreenHeader({ title, subtitle, rightElement }) {
 
   return (
     <View style={styles.wrapper}>
-      <View>
-        <Text style={styles.title}>{title}</Text>
-        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      <View style={styles.textBlock}>
+        <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text style={styles.subtitle} numberOfLines={2} ellipsizeMode="tail">
+            {subtitle}
+          </Text>
+        ) : null}
       </View>
       {rightElement ? <View style={styles.right}>{rightElement}</View> : null}
     </View>
@@ -26,6 +32,10 @@ const createStyles = (theme, isRTL) =>
       alignItems: 'center',
       justifyContent: 'space-between',
     },
+    textBlock: {
+      flex: 1,
+      flexShrink: 1,
+    },
     title: {
       color: theme.text,
       fontSize: 22,
@@ -37,6 +47,7 @@ const createStyles = (theme, isRTL) =>
       fontSize: 14,
       marginTop: 4,
       textAlign: isRTL ? 'right' : 'left',
+      flexShrink: 1,
     },
     right: {
       marginLeft: isRTL ? 0 : 12,
