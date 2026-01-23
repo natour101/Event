@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-class LoginRequest extends ApiFormRequest
+class AvatarUploadRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
@@ -12,8 +12,7 @@ class LoginRequest extends ApiFormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
+            'avatar' => ['required', 'image', 'max:2048'],
         ];
     }
 }
