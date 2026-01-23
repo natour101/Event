@@ -44,6 +44,7 @@ Update `BASE_URL` in `src/constants/api.js` with the ngrok URL.
 ## Frontend
 ```bash
 npm install
+npm start -- --reset-cache
 npm run android
 ```
 
