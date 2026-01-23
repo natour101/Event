@@ -15,12 +15,24 @@ php artisan key:generate
 
 3. Configure database credentials in `.env` and run migrations
 ```bash
-php artisan migrate
+php artisan migrate --seed
+php artisan storage:link
 ```
 
 4. Run the server
 ```bash
 php artisan serve
+```
+
+### Verify Auth Endpoints
+```bash
+curl -X POST http://localhost:8000/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"ahmed","phone_number":"0555555555","email":"ahmed@example.com","password":"secret123"}'
+
+curl -X POST http://localhost:8000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"ahmed@example.com","password":"secret123"}'
 ```
 
 ### Ngrok
@@ -32,6 +44,7 @@ Update `BASE_URL` in `src/constants/api.js` with the ngrok URL.
 ## Frontend
 ```bash
 npm install
+npm start -- --reset-cache
 npm run android
 ```
 

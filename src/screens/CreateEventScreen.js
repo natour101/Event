@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -14,11 +14,79 @@ import PrimaryButton from '../components/PrimaryButton';
 import ScreenHeader from '../components/ScreenHeader';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
+import { categoryApi, eventsApi } from '../services/api';
+
+const defaultForm = {
+  title: '',
+  subtitle: '',
+  description: '',
+  location: '',
+  date: '',
+  time: '',
+  price: '',
+  imageUrl: '',
+};
 
 export default function CreateEventScreen() {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const [form, setForm] = useState(defaultForm);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await categoryApi.list();
+      setCategories(response.data?.items || []);
+    } catch (error) {
+      setSubmitError(error?.message || t('common.error'));
+    }
+  }, [t]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  const onChange = (key, value) => {
+    setForm(prev => ({ ...prev, [key]: value }));
+  };
+
+  const validate = () => {
+    const nextErrors = {};
+    if (!form.title) nextErrors.title = t('auth.errors.required');
+    if (!form.location) nextErrors.location = t('auth.errors.required');
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const onSubmit = async () => {
+    if (!validate()) return;
+    setSubmitting(true);
+    setSubmitError('');
+    try {
+      const startAt = form.date && form.time ? `${form.date} ${form.time}` : null;
+      await eventsApi.create({
+        title: form.title,
+        subtitle: form.subtitle,
+        description: form.description,
+        location: form.location,
+        start_at: startAt,
+        price: form.price ? Number(form.price) : 0,
+        image_url: form.imageUrl || undefined,
+        category_id: selectedCategory,
+      });
+      setForm(defaultForm);
+      setSelectedCategory(null);
+    } catch (error) {
+      setSubmitError(error?.response?.message || error?.message || t('common.error'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -41,21 +109,38 @@ export default function CreateEventScreen() {
           <Text style={styles.uploadSubtitle} numberOfLines={2} ellipsizeMode="tail">
             {t('create.coverHint')}
           </Text>
-          <PrimaryButton label={t('create.upload')} variant="secondary" />
+          <InputField
+            label={t('create.cover')}
+            placeholder="https://"
+            value={form.imageUrl}
+            onChangeText={value => onChange('imageUrl', value)}
+          />
         </View>
 
-        <InputField label={t('create.name')} placeholder={t('create.name')} />
+        <InputField
+          label={t('create.name')}
+          placeholder={t('create.name')}
+          value={form.title}
+          onChangeText={value => onChange('title', value)}
+        />
+        {errors.title ? <Text style={styles.errorText}>{errors.title}</Text> : null}
+
+        <InputField
+          label={t('create.subtitle')}
+          placeholder={t('create.subtitle')}
+          value={form.subtitle}
+          onChangeText={value => onChange('subtitle', value)}
+        />
 
         <Text style={styles.sectionLabel}>{t('create.category')}</Text>
         <View style={styles.categoryRow}>
-          {[
-            t('categories.tech'),
-            t('categories.business'),
-            t('categories.fun'),
-            t('categories.arts'),
-            t('categories.sports'),
-          ].map((item, index) => (
-            <CategoryPill key={item} label={item} active={index === 0} />
+          {categories.map(category => (
+            <CategoryPill
+              key={category.id}
+              label={category.name}
+              active={selectedCategory === category.id}
+              onPress={() => setSelectedCategory(category.id)}
+            />
           ))}
         </View>
 
@@ -64,6 +149,8 @@ export default function CreateEventScreen() {
           placeholder={t('create.descriptionHint')}
           multiline
           inputStyle={styles.textArea}
+          value={form.description}
+          onChangeText={value => onChange('description', value)}
         />
 
         <View style={styles.row}>
@@ -71,20 +158,33 @@ export default function CreateEventScreen() {
             label={t('create.date')}
             placeholder={t('create.datePlaceholder')}
             containerStyle={styles.flex}
+            value={form.date}
+            onChangeText={value => onChange('date', value)}
           />
           <InputField
             label={t('create.time')}
             placeholder={t('create.timePlaceholder')}
             containerStyle={styles.flex}
+            value={form.time}
+            onChangeText={value => onChange('time', value)}
           />
         </View>
 
-        <PrimaryButton label={t('create.publish')} />
+        <PrimaryButton
+          label={submitting ? t('common.loading') : t('create.publish')}
+          onPress={onSubmit}
+          style={submitting ? styles.disabledButton : null}
+        />
+
+        {submitError ? <Text style={styles.errorText}>{submitError}</Text> : null}
 
         <InputField
           label={t('create.locationSearch')}
           placeholder={t('create.locationPlaceholder')}
+          value={form.location}
+          onChangeText={value => onChange('location', value)}
         />
+        {errors.location ? <Text style={styles.errorText}>{errors.location}</Text> : null}
         <View style={styles.mapBox}>
           <Icon name="map-marker-outline" size={18} color={theme.muted} />
           <Text style={styles.mapText}>{t('create.mapPreview')}</Text>
@@ -99,6 +199,9 @@ export default function CreateEventScreen() {
         <InputField
           label={t('create.price')}
           placeholder={t('create.pricePlaceholder')}
+          value={form.price}
+          onChangeText={value => onChange('price', value)}
+          keyboardType="numeric"
         />
       </ScrollView>
     </KeyboardAvoidingView>
@@ -181,5 +284,13 @@ const createStyles = (theme, isRTL) =>
     ticketRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       gap: 12,
+    },
+    errorText: {
+      color: theme.warning,
+      fontSize: 12,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    disabledButton: {
+      opacity: 0.7,
     },
   });

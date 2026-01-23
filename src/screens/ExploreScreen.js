@@ -1,17 +1,66 @@
-import React, { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import CategoryPill from '../components/CategoryPill';
 import EventCard from '../components/EventCard';
 import Icon from '../components/Icon';
+import PrimaryButton from '../components/PrimaryButton';
 import ScreenHeader from '../components/ScreenHeader';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
-import { exploreEvents } from '../utils/mockData';
+import { categoryApi, eventsApi } from '../services/api';
 
-export default function ExploreScreen() {
+export default function ExploreScreen({ navigation }) {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [search, setSearch] = useState('');
+  const [events, setEvents] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await categoryApi.list();
+      setCategories(response.data?.items || []);
+    } catch (fetchError) {
+      setError(fetchError?.message || t('common.error'));
+    }
+  }, [t]);
+
+  const fetchEvents = useCallback(async (pageNumber = 1, reset = false) => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await eventsApi.list({
+        page: pageNumber,
+        search: search || undefined,
+        category_id: selectedCategory || undefined,
+      });
+      const nextItems = response.data?.items || [];
+      setEvents(prev => (reset ? nextItems : [...prev, ...nextItems]));
+      const pagination = response.data?.pagination;
+      setTotal(pagination?.total || nextItems.length);
+      setHasMore(pagination ? pagination.current_page < pagination.last_page : false);
+      setPage(pageNumber);
+    } catch (fetchError) {
+      setError(fetchError?.message || t('common.error'));
+    } finally {
+      setLoading(false);
+    }
+  }, [search, selectedCategory, t]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  useEffect(() => {
+    fetchEvents(1, true);
+  }, [fetchEvents]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -21,27 +70,61 @@ export default function ExploreScreen() {
       />
       <View style={styles.searchRow}>
         <Icon name="magnify" size={18} color={theme.muted} />
-        <Text style={styles.searchPlaceholder}>{t('explore.search')}</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder={t('explore.search')}
+          placeholderTextColor={theme.muted}
+          value={search}
+          onChangeText={value => setSearch(value)}
+          onSubmitEditing={() => fetchEvents(1, true)}
+        />
         <View style={styles.filterIcon}>
           <Icon name="tune-variant" size={18} color={theme.text} />
         </View>
       </View>
 
       <View style={styles.categoryRow}>
-        {[t('categories.all'), t('categories.music'), t('categories.arts'), t('categories.business'), t('categories.sports')].map(
-          (item, index) => (
-            <CategoryPill key={item} label={item} active={index === 0} />
-          )
-        )}
-      </View>
-
-      <Text style={styles.resultText}>{t('explore.results')}</Text>
-
-      <View style={styles.list}>
-        {exploreEvents.map(event => (
-          <EventCard key={event.id} event={event} actionLabel={event.tag} />
+        <CategoryPill
+          label={t('categories.all')}
+          active={!selectedCategory}
+          onPress={() => setSelectedCategory(null)}
+        />
+        {categories.map(category => (
+          <CategoryPill
+            key={category.id}
+            label={category.name}
+            active={selectedCategory === category.id}
+            onPress={() => setSelectedCategory(category.id)}
+          />
         ))}
       </View>
+
+      <Text style={styles.resultText}>
+        {t('explore.results')} ({total})
+      </Text>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+      <View style={styles.list}>
+        {events.map(event => (
+          <EventCard
+            key={event.id}
+            event={{
+              ...event,
+              date: event.date_label,
+            }}
+            actionLabel={event.tag}
+            onPress={() => navigation.navigate('EventDetails', { eventId: event.id })}
+          />
+        ))}
+      </View>
+      {hasMore ? (
+        <PrimaryButton
+          label={loading ? t('common.loading') : t('common.viewAll')}
+          variant="secondary"
+          onPress={() => fetchEvents(page + 1)}
+          style={styles.loadMoreButton}
+        />
+      ) : null}
     </ScrollView>
   );
 }
@@ -73,6 +156,12 @@ const createStyles = (theme, isRTL) =>
       fontSize: 14,
       textAlign: isRTL ? 'right' : 'left',
     },
+    searchInput: {
+      flex: 1,
+      color: theme.text,
+      fontSize: 14,
+      textAlign: isRTL ? 'right' : 'left',
+    },
     filterIcon: {
       backgroundColor: theme.surfaceLight,
       width: 36,
@@ -93,5 +182,13 @@ const createStyles = (theme, isRTL) =>
     },
     list: {
       gap: 14,
+    },
+    loadMoreButton: {
+      marginTop: 6,
+    },
+    errorText: {
+      color: theme.warning,
+      fontSize: 12,
+      textAlign: isRTL ? 'right' : 'left',
     },
   });
