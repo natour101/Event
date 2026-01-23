@@ -1,15 +1,15 @@
 import React, { useMemo } from 'react';
-import { ImageBackground, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 
-export default function EventCard({ event, style, actionLabel }) {
+export default function EventCard({ event, style, actionLabel, onPress }) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
 
   return (
-    <View style={[styles.card, style]}>
+    <Pressable style={[styles.card, style]} onPress={onPress} disabled={!onPress}>
       <ImageBackground
         source={{ uri: event.image }}
         style={styles.image}
@@ -35,7 +35,7 @@ export default function EventCard({ event, style, actionLabel }) {
           ) : null}
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

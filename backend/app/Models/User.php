@@ -16,6 +16,7 @@ class User extends Authenticatable
         'phone_number',
         'email',
         'password',
+        'profile_image_path',
     ];
 
     protected $hidden = [
@@ -31,5 +32,10 @@ class User extends Authenticatable
     public function deviceTokens()
     {
         return $this->hasMany(DeviceToken::class);
+    }
+
+    public function events()
+    {
+        return $this->hasMany(Event::class);
     }
 }

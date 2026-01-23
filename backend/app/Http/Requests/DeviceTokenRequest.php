@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class DeviceTokenRequest extends FormRequest
+class DeviceTokenRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
