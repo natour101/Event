@@ -16,6 +16,7 @@ import SocialButton from '../components/SocialButton';
 import Icon from '../components/Icon';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useNotifications } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
 
 const validateEmail = value => /\S+@\S+\.\S+/.test(value);
@@ -25,6 +26,7 @@ export default function AuthScreen({ navigation, route }) {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
   const { login, register } = useAuth();
+  const { addNotification } = useNotifications();
   const [mode, setMode] = useState(route?.params?.mode || 'login');
   const [form, setForm] = useState({
     email: '',
@@ -76,6 +78,10 @@ export default function AuthScreen({ navigation, route }) {
           password: form.password,
           username: form.username,
           phone_number: form.phone,
+        });
+        await addNotification({
+          title: t('notifications.welcomeTitle'),
+          message: t('notifications.welcomeMessage'),
         });
       }
       navigation.replace('Main');

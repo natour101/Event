@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ImageBackground,
+  Linking,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -36,6 +38,11 @@ export default function EventDetailsScreen({ route }) {
   useEffect(() => {
     fetchEvent();
   }, [fetchEvent]);
+
+  const mapUrl = event?.map_url || event?.map_link || event?.map;
+  const priceLabel = event?.price
+    ? `${event.price} ${t('common.currency')}`
+    : t('common.free');
 
   if (!eventId) {
     return (
@@ -103,10 +110,14 @@ export default function EventDetailsScreen({ route }) {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{t('eventDetails.location')}</Text>
         <Text style={styles.cardValue}>{event?.location}</Text>
-        <View style={styles.mapPreview}>
+        <Pressable
+          style={[styles.mapPreview, !mapUrl && styles.mapPreviewDisabled]}
+          onPress={() => (mapUrl ? Linking.openURL(mapUrl) : null)}
+          disabled={!mapUrl}
+        >
           <Icon name="map-outline" size={18} color="#2f1c14" />
           <Text style={styles.mapText}>{t('eventDetails.openMap')}</Text>
-        </View>
+        </Pressable>
       </View>
 
       <View style={styles.card}>
@@ -119,9 +130,7 @@ export default function EventDetailsScreen({ route }) {
         label={t('eventDetails.registerNow')}
         iconComponent={<Icon name="arrow-left" size={18} color={theme.text} />}
       />
-      <Text style={styles.priceText}>
-        {event?.price ? `${event.price} SAR` : t('common.free')}
-      </Text>
+      <Text style={styles.priceText}>{priceLabel}</Text>
     </ScrollView>
   );
 }
@@ -229,6 +238,9 @@ const createStyles = (theme, isRTL) =>
       alignItems: 'center',
       justifyContent: 'center',
       gap: 6,
+    },
+    mapPreviewDisabled: {
+      opacity: 0.6,
     },
     mapText: {
       color: '#2f1c14',

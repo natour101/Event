@@ -11,13 +11,13 @@ export const palette = {
     muted: '#b9a89b',
   },
   softDark: {
-    background: '#221714',
-    surface: '#33231c',
-    surfaceLight: '#3b281f',
-    border: '#4a3227',
-    text: '#f7efe8',
-    textDark: '#decfc3',
-    muted: '#c0aea3',
+    background: '#ffffff',
+    surface: '#f7f4f1',
+    surfaceLight: '#efe9e4',
+    border: '#e1d7cf',
+    text: '#2a1b14',
+    textDark: '#5f524b',
+    muted: '#8a7b72',
   },
 };
 
