@@ -34,6 +34,14 @@ export const authApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
+  me: token =>
+    request('/auth/me', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    }),
   logout: token =>
     request('/auth/logout', {
       method: 'POST',

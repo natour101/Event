@@ -15,7 +15,7 @@ export default function ProfileScreen() {
 
   const userName = user?.username || t('profile.name');
   const userEmail = user?.email || 'user@email.com';
-  const userPhone = user?.phone || '+966 5x xxx xxxx';
+  const userPhone = user?.phone_number || user?.phone || '+966 5x xxx xxxx';
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>

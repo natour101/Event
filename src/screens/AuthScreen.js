@@ -75,7 +75,7 @@ export default function AuthScreen({ navigation, route }) {
           email: form.email,
           password: form.password,
           username: form.username,
-          phone: form.phone,
+          phone_number: form.phone,
         });
       }
       navigation.replace('Main');

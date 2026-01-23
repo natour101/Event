@@ -1,5 +1,13 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { authApi } from '../services/api';
+import { registerDeviceToken } from '../services/notifications';
 import { getJson, removeItem, saveJson, STORAGE_KEYS } from '../utils/storage';
 
 const defaultAuthState = {
@@ -23,12 +31,33 @@ export function AuthProvider({ children }) {
     const storedToken = await getJson(STORAGE_KEYS.token);
     setUser(storedUser);
     setToken(storedToken);
+    if (storedToken) {
+      try {
+        const result = await authApi.me(storedToken);
+        const freshUser = result.user || result.data || storedUser;
+        setUser(freshUser);
+        if (freshUser) {
+          await saveJson(STORAGE_KEYS.user, freshUser);
+        }
+      } catch (error) {
+        await removeItem(STORAGE_KEYS.user);
+        await removeItem(STORAGE_KEYS.token);
+        setUser(null);
+        setToken(null);
+      }
+    }
     setLoading(false);
   }, []);
 
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  useEffect(() => {
+    if (token) {
+      registerDeviceToken(token).catch(() => {});
+    }
+  }, [token]);
 
   const login = useCallback(async payload => {
     const result = await authApi.login(payload);
