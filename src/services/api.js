@@ -12,7 +12,14 @@ const withTimeout = async (promise, timeoutMs) => {
 
 export const request = async (path, options = {}) => {
   const url = `${API_CONFIG.BASE_URL}${path}`;
-  const response = await withTimeout(fetch(url, options), API_CONFIG.TIMEOUT_MS);
+  const mergedOptions = {
+    ...options,
+    headers: {
+      Accept: 'application/json',
+      ...(options.headers || {}),
+    },
+  };
+  const response = await withTimeout(fetch(url, mergedOptions), API_CONFIG.TIMEOUT_MS);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = data?.message || 'Request failed';
