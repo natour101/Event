@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StyleSheet } from 'react-native';
@@ -9,18 +9,59 @@ import EventDetailsScreen from '../screens/EventDetailsScreen';
 import ExploreScreen from '../screens/ExploreScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import SplashScreen from '../screens/SplashScreen';
 import TournamentsScreen from '../screens/TournamentsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabs() {
   const { theme } = useTheme();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
+
+  const tabs = useMemo(() => {
+    const baseTabs = [
+      {
+        name: 'Home',
+        component: HomeScreen,
+        label: t('tabs.home'),
+        icon: 'home',
+        iconSize: 20,
+      },
+      {
+        name: 'Explore',
+        component: ExploreScreen,
+        label: t('tabs.explore'),
+        icon: 'compass',
+        iconSize: 20,
+      },
+      {
+        name: 'Create',
+        component: CreateEventScreen,
+        label: t('tabs.create'),
+        icon: 'plus-circle',
+        iconSize: 22,
+      },
+      {
+        name: 'Tournaments',
+        component: TournamentsScreen,
+        label: t('tabs.tournaments'),
+        icon: 'trophy',
+        iconSize: 20,
+      },
+      {
+        name: 'Profile',
+        component: ProfileScreen,
+        label: t('tabs.profile'),
+        icon: 'account',
+        iconSize: 20,
+      },
+    ];
+    return isRTL ? [...baseTabs].reverse() : baseTabs;
+  }, [isRTL, t]);
 
   return (
     <Tab.Navigator
@@ -35,72 +76,30 @@ function MainTabs() {
         tabBarLabelStyle: styles.tabLabel,
       }}
     >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          tabBarLabel: t('tabs.home'),
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="home" size={20} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Explore"
-        component={ExploreScreen}
-        options={{
-          tabBarLabel: t('tabs.explore'),
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="compass" size={20} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Create"
-        component={CreateEventScreen}
-        options={{
-          tabBarLabel: t('tabs.create'),
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="plus-circle" size={22} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Tournaments"
-        component={TournamentsScreen}
-        options={{
-          tabBarLabel: t('tabs.tournaments'),
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="trophy" size={20} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarLabel: t('tabs.profile'),
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="account" size={20} color={color} />
-          ),
-        }}
-      />
+      {tabs.map(tab => (
+        <Tab.Screen
+          key={tab.name}
+          name={tab.name}
+          component={tab.component}
+          options={{
+            tabBarLabel: tab.label,
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons name={tab.icon} size={tab.iconSize} color={color} />
+            ),
+          }}
+        />
+      ))}
     </Tab.Navigator>
   );
 }
 
 export default function AppNavigator() {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return null;
-  }
-
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false }}
-      initialRouteName={user ? 'Main' : 'Welcome'}
+      initialRouteName="Splash"
     >
+      <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Auth" component={AuthScreen} />
       <Stack.Screen name="Main" component={MainTabs} />

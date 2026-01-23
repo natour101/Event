@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Dimensions,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -10,10 +11,12 @@ import {
 import CategoryPill from '../components/CategoryPill';
 import EventCard from '../components/EventCard';
 import Icon from '../components/Icon';
+import NotificationBell from '../components/NotificationBell';
 import ScreenHeader from '../components/ScreenHeader';
 import SectionHeader from '../components/SectionHeader';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useNotifications } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
 import { categoryApi, homeApi } from '../services/api';
 
@@ -23,6 +26,7 @@ export default function HomeScreen({ navigation }) {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
   const { user } = useAuth();
+  const { unreadCount, markAllRead } = useNotifications();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
   const [homeData, setHomeData] = useState({
     featured: [],
@@ -66,17 +70,30 @@ export default function HomeScreen({ navigation }) {
       <ScreenHeader
         title={user?.name || t('home.userName')}
         subtitle={t('home.greeting')}
-        rightElement={<Icon name="bell-outline" size={20} color={theme.text} />}
+        rightElement={<NotificationBell count={unreadCount} onPress={markAllRead} />}
       />
-      <View style={styles.searchRow}>
+      <Pressable
+        style={styles.searchRow}
+        onPress={() => navigation.navigate('Explore', { focusSearch: true })}
+      >
         <Icon name="magnify" size={18} color={theme.muted} />
         <Text style={styles.searchPlaceholder}>{t('home.search')}</Text>
-        <View style={styles.filterIcon}>
+        <Pressable
+          style={styles.filterIcon}
+          onPress={event => {
+            event?.stopPropagation?.();
+            navigation.navigate('Explore', { focusFilter: true });
+          }}
+        >
           <Icon name="tune-variant" size={18} color={theme.text} />
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
 
-      <SectionHeader title={t('home.featured')} action={t('common.viewAll')} />
+      <SectionHeader
+        title={t('home.featured')}
+        action={t('common.viewAll')}
+        onActionPress={() => navigation.navigate('Explore')}
+      />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       {homeData.featured.map(event => (
         <EventCard
@@ -98,7 +115,11 @@ export default function HomeScreen({ navigation }) {
         ))}
       </View>
 
-      <SectionHeader title={t('home.nearby')} action={t('common.viewAll')} />
+      <SectionHeader
+        title={t('home.nearby')}
+        action={t('common.viewAll')}
+        onActionPress={() => navigation.navigate('Explore')}
+      />
       <View style={styles.nearbyRow}>
         {homeData.nearby.map(event => (
           <View key={event.id} style={styles.nearbyCard}>
@@ -114,7 +135,11 @@ export default function HomeScreen({ navigation }) {
         ))}
       </View>
 
-      <SectionHeader title={t('home.newest')} action={t('common.viewAll')} />
+      <SectionHeader
+        title={t('home.newest')}
+        action={t('common.viewAll')}
+        onActionPress={() => navigation.navigate('Explore')}
+      />
       <View style={styles.list}>
         {homeData.newest.map(event => (
           <EventCard

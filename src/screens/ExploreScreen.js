@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import CategoryPill from '../components/CategoryPill';
 import EventCard from '../components/EventCard';
@@ -9,10 +9,12 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { categoryApi, eventsApi } from '../services/api';
 
-export default function ExploreScreen({ navigation }) {
+export default function ExploreScreen({ navigation, route }) {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const searchInputRef = useRef(null);
+  const scrollRef = useRef(null);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [search, setSearch] = useState('');
@@ -62,15 +64,33 @@ export default function ExploreScreen({ navigation }) {
     fetchEvents(1, true);
   }, [fetchEvents]);
 
+  useEffect(() => {
+    if (route?.params?.focusSearch) {
+      searchInputRef.current?.focus();
+    }
+  }, [route?.params?.focusSearch]);
+
+  useEffect(() => {
+    if (route?.params?.focusFilter) {
+      const timer = setTimeout(() => {
+        scrollRef.current?.scrollTo({ y: 200, animated: true });
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [route?.params?.focusFilter]);
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <ScreenHeader
-        title={t('explore.title')}
-        rightElement={<Icon name="arrow-left" size={18} color={theme.text} />}
-      />
+    <ScrollView
+      ref={scrollRef}
+      style={styles.container}
+      contentContainerStyle={styles.content}
+    >
+      <ScreenHeader title={t('explore.title')} />
       <View style={styles.searchRow}>
         <Icon name="magnify" size={18} color={theme.muted} />
         <TextInput
+          ref={searchInputRef}
           style={styles.searchInput}
           placeholder={t('explore.search')}
           placeholderTextColor={theme.muted}
