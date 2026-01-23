@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 
-export default function SectionHeader({ title, action }) {
+export default function SectionHeader({ title, action, onActionPress }) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
@@ -11,9 +11,11 @@ export default function SectionHeader({ title, action }) {
   return (
     <View style={styles.wrapper}>
       {action ? (
-        <Text style={styles.action} numberOfLines={1} ellipsizeMode="tail">
-          {action}
-        </Text>
+        <Pressable onPress={onActionPress} disabled={!onActionPress}>
+          <Text style={styles.action} numberOfLines={1} ellipsizeMode="tail">
+            {action}
+          </Text>
+        </Pressable>
       ) : null}
       <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
         {title}

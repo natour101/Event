@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
+  Pressable,
   ScrollView,
   StyleSheet,
   Switch,
   Text,
   View,
 } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from '../components/Icon';
 import InputField from '../components/InputField';
 import PrimaryButton from '../components/PrimaryButton';
@@ -19,7 +21,7 @@ import { profileApi } from '../services/api';
 const validateEmail = value => /\S+@\S+\.\S+/.test(value);
 
 export default function ProfileScreen() {
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, toggleLanguage } = useLanguage();
   const { theme, mode, toggleMode } = useTheme();
   const { user, logout, updateUser } = useAuth();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
@@ -123,48 +125,69 @@ export default function ProfileScreen() {
     }
   };
 
-  const onUploadAvatar = async () => {
-    if (!form.profile_image_url) return;
-    setStatus({ loading: true, error: '', success: '' });
-    try {
-      const response = await profileApi.update({
-        profile_image_url: form.profile_image_url,
-      });
-      const nextUser = response.data?.user;
-      if (nextUser) {
-        updateUser(nextUser);
-      }
+  const onPickAvatar = async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      selectionLimit: 1,
+    });
+    const asset = result?.assets?.[0];
+    if (asset?.uri) {
+      const nextUser = { ...user, profile_image_url: asset.uri };
+      updateUser(nextUser);
+      setForm(prev => ({ ...prev, profile_image_url: asset.uri }));
       setStatus({ loading: false, error: '', success: t('profile.avatarUpdated') });
-    } catch (error) {
-      setStatus({ loading: false, error: error?.message || t('common.error'), success: '' });
     }
+  };
+
+  const onResetProfile = () => {
+    hydrateForm(user);
+    setPasswordForm({ currentPassword: '', password: '', passwordConfirmation: '' });
+    setErrors({});
+    setStatus({ loading: false, error: '', success: '' });
   };
 
   const userName = user?.name || t('profile.name');
   const userEmail = user?.email || 'user@email.com';
   const userPhone = user?.phone_number || user?.phone || '+966 5x xxx xxxx';
+  const avatarUri = form.profile_image_url || user?.profile_image_url;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <ScreenHeader title={t('profile.title')} />
       <View style={styles.profileHeader}>
-        <View style={styles.avatar}>
-          {user?.profile_image_url ? (
-            <Image source={{ uri: user.profile_image_url }} style={styles.avatarImage} />
-          ) : (
-            <Icon name="account" size={36} color={theme.text} />
-          )}
+        <View style={styles.headerTop}>
+          <View style={styles.profileInfo}>
+            <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+              {userName}
+            </Text>
+            <Text style={styles.subtitle} numberOfLines={1} ellipsizeMode="tail">
+              {userEmail}
+            </Text>
+            <Text style={styles.meta} numberOfLines={1} ellipsizeMode="tail">
+              {userPhone}
+            </Text>
+          </View>
+          <View style={styles.avatar}>
+            {avatarUri ? (
+              <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+            ) : (
+              <Icon name="account" size={36} color={theme.text} />
+            )}
+          </View>
         </View>
-        <View style={styles.profileInfo}>
-          <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
-            {userName}
-          </Text>
-          <Text style={styles.subtitle} numberOfLines={1} ellipsizeMode="tail">
-            {userEmail}
-          </Text>
-          <Text style={styles.meta} numberOfLines={1} ellipsizeMode="tail">
-            {userPhone}
-          </Text>
+        <View style={styles.quickActions}>
+          <Pressable style={styles.quickAction} onPress={onPickAvatar}>
+            <Icon name="camera-outline" size={18} color={theme.accent} />
+            <Text style={styles.quickActionText}>{t('profile.pickAvatar')}</Text>
+          </Pressable>
+          <Pressable style={styles.quickAction} onPress={toggleLanguage}>
+            <Icon name="translate" size={18} color={theme.accent} />
+            <Text style={styles.quickActionText}>{t('profile.changeLanguage')}</Text>
+          </Pressable>
+          <Pressable style={styles.quickAction} onPress={onResetProfile}>
+            <Icon name="restore" size={18} color={theme.accent} />
+            <Text style={styles.quickActionText}>{t('profile.reset')}</Text>
+          </Pressable>
         </View>
       </View>
 
@@ -203,23 +226,6 @@ export default function ProfileScreen() {
           />
           {status.error ? <Text style={styles.errorText}>{status.error}</Text> : null}
           {status.success ? <Text style={styles.successText}>{status.success}</Text> : null}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('profile.avatar')}</Text>
-        <View style={styles.card}>
-          <InputField
-            label={t('profile.avatarUrl')}
-            value={form.profile_image_url}
-            onChangeText={value => onChange('profile_image_url', value)}
-            placeholder="https://"
-          />
-          <PrimaryButton
-            label={t('profile.uploadAvatar')}
-            onPress={onUploadAvatar}
-            style={status.loading ? styles.disabledButton : null}
-          />
         </View>
       </View>
 
@@ -280,6 +286,11 @@ export default function ProfileScreen() {
               {t('common.arabic')} / {t('common.english')}
             </Text>
           </View>
+          <PrimaryButton
+            label={t('profile.changeLanguage')}
+            variant="secondary"
+            onPress={toggleLanguage}
+          />
         </View>
       </View>
 
@@ -303,18 +314,26 @@ const createStyles = (theme, isRTL) =>
       backgroundColor: theme.surface,
       borderRadius: 20,
       padding: 16,
+      gap: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    headerTop: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       gap: 16,
     },
     avatar: {
-      width: 70,
-      height: 70,
-      borderRadius: 24,
+      width: 84,
+      height: 84,
+      borderRadius: 28,
       backgroundColor: theme.surfaceLight,
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'hidden',
+      borderWidth: 2,
+      borderColor: theme.accent,
     },
     avatarImage: {
       width: '100%',
@@ -340,6 +359,25 @@ const createStyles = (theme, isRTL) =>
       fontSize: 12,
       marginTop: 4,
       flexShrink: 1,
+    },
+    quickActions: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+    },
+    quickAction: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      gap: 8,
+      backgroundColor: theme.surfaceLight,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 14,
+    },
+    quickActionText: {
+      color: theme.text,
+      fontSize: 13,
+      fontWeight: '600',
     },
     section: {
       gap: 12,
