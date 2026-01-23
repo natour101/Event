@@ -5,44 +5,234 @@
   },
   "item": [
     {
-      "name": "Register",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api", "auth", "register"]},
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"username\": \"ahmed\",\n  \"phone_number\": \"0555555555\",\n  \"email\": \"ahmed@example.com\",\n  \"password\": \"secret123\"\n}"
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api", "auth", "register"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"ahmed\",\n  \"phone_number\": \"0555555555\",\n  \"email\": \"ahmed@example.com\",\n  \"password\": \"secret123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api", "auth", "login"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ahmed@example.com\",\n  \"password\": \"secret123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/auth/me", "host": ["{{base_url}}"], "path": ["api", "auth", "me"]}
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/auth/logout", "host": ["{{base_url}}"], "path": ["api", "auth", "logout"]}
+          }
         }
-      }
+      ]
     },
     {
-      "name": "Login",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api", "auth", "login"]},
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"ahmed@example.com\",\n  \"password\": \"secret123\"\n}"
-        }
-      }
-    },
-    {
-      "name": "Me",
+      "name": "Home",
       "request": {
         "method": "GET",
-        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
-        "url": {"raw": "{{base_url}}/api/auth/me", "host": ["{{base_url}}"], "path": ["api", "auth", "me"]}
+        "url": {"raw": "{{base_url}}/api/home", "host": ["{{base_url}}"], "path": ["api", "home"]}
       }
     },
     {
-      "name": "Logout",
+      "name": "Categories",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
-        "url": {"raw": "{{base_url}}/api/auth/logout", "host": ["{{base_url}}"], "path": ["api", "auth", "logout"]}
+        "method": "GET",
+        "url": {"raw": "{{base_url}}/api/categories", "host": ["{{base_url}}"], "path": ["api", "categories"]}
       }
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{base_url}}/api/events?search=&category_id=&page=1", "host": ["{{base_url}}"], "path": ["api", "events"], "query": [{"key": "search", "value": ""}, {"key": "category_id", "value": ""}, {"key": "page", "value": "1"}]}
+          }
+        },
+        {
+          "name": "Show",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{base_url}}/api/events/1", "host": ["{{base_url}}"], "path": ["api", "events", "1"]}
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": {"raw": "{{base_url}}/api/events", "host": ["{{base_url}}"], "path": ["api", "events"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Sample Event\",\n  \"subtitle\": \"Short tagline\",\n  \"description\": \"Event description\",\n  \"location\": \"Riyadh\",\n  \"start_at\": \"2025-02-01 18:00:00\",\n  \"price\": 0,\n  \"image_url\": \"https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": {"raw": "{{base_url}}/api/events/1", "host": ["{{base_url}}"], "path": ["api", "events", "1"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Event\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/events/1", "host": ["{{base_url}}"], "path": ["api", "events", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tournaments",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{base_url}}/api/tournaments?status=live&page=1", "host": ["{{base_url}}"], "path": ["api", "tournaments"], "query": [{"key": "status", "value": "live"}, {"key": "page", "value": "1"}]}
+          }
+        },
+        {
+          "name": "Show",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{base_url}}/api/tournaments/1", "host": ["{{base_url}}"], "path": ["api", "tournaments", "1"]}
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": {"raw": "{{base_url}}/api/tournaments", "host": ["{{base_url}}"], "path": ["api", "tournaments"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"FIFA Cup\",\n  \"subtitle\": \"Riyadh Finals\",\n  \"prize\": \"5000 SAR\",\n  \"teams\": \"32 Teams\",\n  \"status\": \"live\",\n  \"image_url\": \"https://images.unsplash.com/photo-1511512578047-dfb367046420\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": {"raw": "{{base_url}}/api/tournaments/1", "host": ["{{base_url}}"], "path": ["api", "tournaments", "1"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Tournament\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/tournaments/1", "host": ["{{base_url}}"], "path": ["api", "tournaments", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Show",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/profile", "host": ["{{base_url}}"], "path": ["api", "profile"]}
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": {"raw": "{{base_url}}/api/profile", "host": ["{{base_url}}"], "path": ["api", "profile"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ahmed Updated\",\n  \"phone_number\": \"0555555555\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": {"raw": "{{base_url}}/api/profile/password", "host": ["{{base_url}}"], "path": ["api", "profile", "password"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"secret123\",\n  \"password\": \"newsecret123\",\n  \"password_confirmation\": \"newsecret123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/profile/avatar", "host": ["{{base_url}}"], "path": ["api", "profile", "avatar"]},
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "avatar", "type": "file", "src": ""}
+              ]
+            }
+          }
+        }
+      ]
     },
     {
       "name": "Device Token",

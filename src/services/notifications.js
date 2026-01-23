@@ -1,20 +1,14 @@
 import messaging from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
-import { request } from './api';
+import { api } from './api';
 
 export const registerDeviceToken = async token => {
   const fcmToken = await messaging().getToken();
   if (!fcmToken || !token) return;
-  await request('/device/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
+  api.setToken(token);
+  await api.post('/device/token', {
       token: fcmToken,
       platform: Platform.OS,
-    }),
   });
 };
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ImageBackground,
   ScrollView,
@@ -12,12 +12,39 @@ import PrimaryButton from '../components/PrimaryButton';
 import ScreenHeader from '../components/ScreenHeader';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
-import { tournamentItems } from '../utils/mockData';
+import { tournamentsApi } from '../services/api';
 
 export default function TournamentsScreen() {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const [status, setStatus] = useState('live');
+  const [tournaments, setTournaments] = useState([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const fetchTournaments = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await tournamentsApi.list({
+        status: status === 'mine' ? undefined : status,
+        sort_by: 'starts_at',
+        sort_dir: 'asc',
+      });
+      setTournaments(response.data?.items || []);
+    } catch (fetchError) {
+      setError(fetchError?.message || t('common.error'));
+    } finally {
+      setLoading(false);
+    }
+  }, [status, t]);
+
+  useEffect(() => {
+    fetchTournaments();
+  }, [fetchTournaments]);
+
+  const heroTournament = tournaments.find(item => item.is_trending) || tournaments[0];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -27,12 +54,17 @@ export default function TournamentsScreen() {
       />
       <View style={styles.statusRow}>
         {[
-          t('tournaments.statusLive'),
-          t('tournaments.statusUpcoming'),
-          t('tournaments.statusEnded'),
-          t('tournaments.statusMine'),
-        ].map((item, index) => (
-          <CategoryPill key={item} label={item} active={index === 0} />
+          { label: t('tournaments.statusLive'), value: 'live' },
+          { label: t('tournaments.statusUpcoming'), value: 'upcoming' },
+          { label: t('tournaments.statusEnded'), value: 'ended' },
+          { label: t('tournaments.statusMine'), value: 'mine' },
+        ].map(item => (
+          <CategoryPill
+            key={item.value}
+            label={item.label}
+            active={status === item.value}
+            onPress={() => setStatus(item.value)}
+          />
         ))}
       </View>
 
@@ -41,30 +73,39 @@ export default function TournamentsScreen() {
         <Icon name="fire" size={18} color={theme.accent} />
       </View>
 
-      <ImageBackground
-        source={{ uri: tournamentItems[0].image }}
-        style={styles.hero}
-        imageStyle={styles.heroImage}
-      >
-        <View style={styles.liveTag}>
-          <Text style={styles.liveText}>{t('tournaments.liveNow')}</Text>
-        </View>
-      </ImageBackground>
-      <View style={styles.heroCard}>
-        <View style={styles.heroRow}>
-          <View style={styles.gameIcon}>
-            <Icon name="gamepad-variant" size={20} color={theme.text} />
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {heroTournament ? (
+        <>
+          <ImageBackground
+            source={{ uri: heroTournament.image }}
+            style={styles.hero}
+            imageStyle={styles.heroImage}
+          >
+            <View style={styles.liveTag}>
+              <Text style={styles.liveText}>
+                {heroTournament.status === 'live'
+                  ? t('tournaments.liveNow')
+                  : t('tournaments.statusUpcoming')}
+              </Text>
+            </View>
+          </ImageBackground>
+          <View style={styles.heroCard}>
+            <View style={styles.heroRow}>
+              <View style={styles.gameIcon}>
+                <Icon name="gamepad-variant" size={20} color={theme.text} />
+              </View>
+              <View style={styles.heroInfo}>
+                <Text style={styles.heroTitle}>{heroTournament.title}</Text>
+                <Text style={styles.heroSubtitle}>{heroTournament.subtitle}</Text>
+                <Text style={styles.heroMeta}>
+                  {heroTournament.prize} • {heroTournament.teams}
+                </Text>
+              </View>
+            </View>
+            <PrimaryButton label={t('tournaments.watch')} />
           </View>
-          <View style={styles.heroInfo}>
-            <Text style={styles.heroTitle}>{tournamentItems[0].title}</Text>
-            <Text style={styles.heroSubtitle}>{tournamentItems[0].subtitle}</Text>
-            <Text style={styles.heroMeta}>
-              {tournamentItems[0].prize} • {tournamentItems[0].teams}
-            </Text>
-          </View>
-        </View>
-        <PrimaryButton label={t('tournaments.watch')} />
-      </View>
+        </>
+      ) : null}
 
       <Text style={styles.sectionTitle}>{t('tournaments.champions')}</Text>
       <View style={styles.badgeRow}>
@@ -77,7 +118,7 @@ export default function TournamentsScreen() {
 
       <Text style={styles.sectionTitle}>{t('tournaments.upcoming')}</Text>
       <View style={styles.list}>
-        {tournamentItems.map(item => (
+        {tournaments.map(item => (
           <View key={item.id} style={styles.listCard}>
             <ImageBackground
               source={{ uri: item.image }}
@@ -94,6 +135,9 @@ export default function TournamentsScreen() {
             </View>
           </View>
         ))}
+        {!loading && tournaments.length === 0 ? (
+          <Text style={styles.emptyText}>{t('common.empty')}</Text>
+        ) : null}
       </View>
     </ScrollView>
   );
@@ -237,5 +281,15 @@ const createStyles = (theme, isRTL) =>
       color: theme.accent,
       fontSize: 12,
       textAlign: isRTL ? 'right' : 'left',
+    },
+    errorText: {
+      color: theme.warning,
+      fontSize: 12,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    emptyText: {
+      color: theme.muted,
+      fontSize: 12,
+      textAlign: 'center',
     },
   });

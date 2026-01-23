@@ -21,11 +21,15 @@
       "App\\": "app/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Database\\Factories\\": "database/factories/",
+      "Database\\Seeders\\": "database/seeders/"
+    }
+  },
   "extra": {
     "laravel": {
-      "dont-discover": [
-        "laravel/tinker"
-      ]
+      "dont-discover": []
     }
   },
   "scripts": {

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ImageBackground,
   ScrollView,
@@ -11,49 +11,83 @@ import PrimaryButton from '../components/PrimaryButton';
 import ScreenHeader from '../components/ScreenHeader';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
-import { detailData } from '../utils/mockData';
+import { eventsApi } from '../services/api';
 
-export default function EventDetailsScreen() {
+export default function EventDetailsScreen({ route }) {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const [event, setEvent] = useState(null);
+  const [error, setError] = useState('');
+
+  const eventId = route?.params?.eventId;
+
+  const fetchEvent = useCallback(async () => {
+    if (!eventId) return;
+    setError('');
+    try {
+      const response = await eventsApi.show(eventId);
+      setEvent(response.data?.event || null);
+    } catch (fetchError) {
+      setError(fetchError?.message || t('common.error'));
+    }
+  }, [eventId, t]);
+
+  useEffect(() => {
+    fetchEvent();
+  }, [fetchEvent]);
+
+  if (!eventId) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.errorText}>{t('common.empty')}</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <ImageBackground
-        source={{
-          uri: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80',
-        }}
-        style={styles.hero}
-        imageStyle={styles.heroImage}
-      >
-        <View style={styles.heroActions}>
-          <View style={styles.iconButton}>
-            <Icon name="share-variant" size={16} color={theme.text} />
+      {event?.image ? (
+        <ImageBackground
+          source={{ uri: event.image }}
+          style={styles.hero}
+          imageStyle={styles.heroImage}
+        >
+          <View style={styles.heroActions}>
+            <View style={styles.iconButton}>
+              <Icon name="share-variant" size={16} color={theme.text} />
+            </View>
+            <View style={styles.iconButton}>
+              <Icon name="heart-outline" size={16} color={theme.text} />
+            </View>
           </View>
-          <View style={styles.iconButton}>
-            <Icon name="heart-outline" size={16} color={theme.text} />
-          </View>
-        </View>
-      </ImageBackground>
+        </ImageBackground>
+      ) : null}
 
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
       <ScreenHeader
-        title={detailData.title}
+        title={event?.title || t('eventDetails.organizer')}
         rightElement={<Icon name="ticket-confirmation" size={18} color={theme.text} />}
       />
       <View style={styles.metaRow}>
-        <Text style={styles.metaText}>{detailData.attendees}</Text>
-        <Text style={styles.metaText}>⭐ {detailData.rating}</Text>
+        <Text style={styles.metaText}>
+          {event?.attendees ? `${event.attendees} ${t('eventDetails.attendees')}` : null}
+        </Text>
+        <Text style={styles.metaText}>
+          {event?.rating ? `⭐ ${event.rating}` : null}
+        </Text>
       </View>
 
       <View style={styles.hostRow}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>م</Text>
+          <Text style={styles.avatarText}>
+            {event?.organizer?.name?.slice(0, 1) || 'م'}
+          </Text>
         </View>
         <View style={styles.hostInfo}>
           <Text style={styles.hostLabel}>{t('eventDetails.organizer')}</Text>
           <Text style={styles.hostName} numberOfLines={1} ellipsizeMode="tail">
-            {detailData.host}
+            {event?.organizer?.name || t('eventDetails.organizer')}
           </Text>
         </View>
         <PrimaryButton label={t('common.follow')} variant="secondary" />
@@ -61,14 +95,14 @@ export default function EventDetailsScreen() {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{t('eventDetails.timeDate')}</Text>
-        <Text style={styles.cardValue}>{detailData.date}</Text>
-        <Text style={styles.cardValue}>{detailData.time}</Text>
+        <Text style={styles.cardValue}>{event?.date_label}</Text>
+        {event?.end_at ? <Text style={styles.cardValue}>{event.end_at}</Text> : null}
         <Text style={styles.cardLink}>{t('eventDetails.addCalendar')}</Text>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{t('eventDetails.location')}</Text>
-        <Text style={styles.cardValue}>{detailData.location}</Text>
+        <Text style={styles.cardValue}>{event?.location}</Text>
         <View style={styles.mapPreview}>
           <Icon name="map-outline" size={18} color="#2f1c14" />
           <Text style={styles.mapText}>{t('eventDetails.openMap')}</Text>
@@ -77,7 +111,7 @@ export default function EventDetailsScreen() {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{t('eventDetails.about')}</Text>
-        <Text style={styles.cardValue}>{detailData.description}</Text>
+        <Text style={styles.cardValue}>{event?.description}</Text>
         <Text style={styles.cardLink}>{t('eventDetails.readMore')}</Text>
       </View>
 
@@ -85,7 +119,9 @@ export default function EventDetailsScreen() {
         label={t('eventDetails.registerNow')}
         iconComponent={<Icon name="arrow-left" size={18} color={theme.text} />}
       />
-      <Text style={styles.priceText}>{t('common.free')}</Text>
+      <Text style={styles.priceText}>
+        {event?.price ? `${event.price} SAR` : t('common.free')}
+      </Text>
     </ScrollView>
   );
 }
@@ -203,5 +239,16 @@ const createStyles = (theme, isRTL) =>
       textAlign: 'center',
       fontWeight: '700',
       marginBottom: 20,
+    },
+    errorText: {
+      color: theme.warning,
+      fontSize: 12,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    emptyContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.background,
     },
   });
