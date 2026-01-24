@@ -52,11 +52,15 @@ export default function AuthScreen({ navigation, route }) {
 
   const validate = (targetMode = mode) => {
     const nextErrors = {};
-    const emailValue = form.email.trim().replace(/\s+/g, '');
+    const identifierValue = form.email.trim().replace(/\s+/g, '');
     const usernameValue = form.username.trim();
     const phoneValue = form.phone.trim();
-    if (!emailValue) nextErrors.email = t('auth.errors.required');
-    if (emailValue && !validateEmail(emailValue)) {
+    if (!identifierValue) nextErrors.email = t('auth.errors.required');
+    if (targetMode === 'register') {
+      if (identifierValue && !validateEmail(identifierValue)) {
+        nextErrors.email = t('auth.errors.email');
+      }
+    } else if (identifierValue.includes('@') && !validateEmail(identifierValue)) {
       nextErrors.email = t('auth.errors.email');
     }
     if (!form.password) nextErrors.password = t('auth.errors.required');
@@ -83,13 +87,16 @@ export default function AuthScreen({ navigation, route }) {
     setSubmitError('');
     setSubmitting(true);
     try {
-      const emailValue = form.email.trim().replace(/\s+/g, '').toLowerCase();
+      const identifierValue = form.email.trim().replace(/\s+/g, '');
+      const emailValue = identifierValue.toLowerCase();
       const passwordValue =
         overrideMode === 'login' ? form.password.trim() : form.password;
       if (overrideMode === 'login') {
+        const isEmail = validateEmail(identifierValue);
         await login({
-          identifier: emailValue,
-          email: emailValue,
+          identifier: identifierValue,
+          email: isEmail ? emailValue : undefined,
+          username: identifierValue,
           password: passwordValue,
         });
         await addNotification({
@@ -206,8 +213,12 @@ export default function AuthScreen({ navigation, route }) {
                   </>
                 ) : null}
                 <InputField
-                  label={t('auth.email')}
-                  placeholder={t('auth.emailPlaceholder')}
+                  label={mode === 'login' ? t('auth.loginIdentifier') : t('auth.email')}
+                  placeholder={
+                    mode === 'login'
+                      ? t('auth.loginIdentifierPlaceholder')
+                      : t('auth.emailPlaceholder')
+                  }
                   value={form.email}
                   onChangeText={value => onChange('email', value)}
                   autoCapitalize="none"

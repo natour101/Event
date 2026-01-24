@@ -40,6 +40,8 @@ export default {
     subtitle: 'Discover events, create them, and join with ease',
     email: 'Email',
     emailPlaceholder: 'example@email.com',
+    loginIdentifier: 'Email or username',
+    loginIdentifierPlaceholder: 'Email or username',
     password: 'Password',
     passwordPlaceholder: '••••••••',
     username: 'Username',
