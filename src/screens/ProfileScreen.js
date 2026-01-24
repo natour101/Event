@@ -54,33 +54,11 @@ export default function ProfileScreen() {
     });
   }, []);
 
-  const fetchProfile = useCallback(async () => {
-    setStatus(prev => ({ ...prev, loading: true, error: '', success: '' }));
-    try {
-      const response = await profileApi.show();
-      const nextUser = response.data?.user;
-      if (nextUser) {
-        updateUser(nextUser);
-        hydrateForm(nextUser);
-      }
-    } catch (fetchError) {
-      setStatus(prev => ({ ...prev, error: fetchError?.message || t('common.error') }));
-    } finally {
-      setStatus(prev => ({ ...prev, loading: false }));
-    }
-  }, [hydrateForm, t, updateUser]);
-
   useEffect(() => {
     if (user) {
       hydrateForm(user);
     }
   }, [user, hydrateForm]);
-
-  useEffect(() => {
-    if (user || token) {
-      fetchProfile();
-    }
-  }, [fetchProfile, token, user]);
 
   const goToWelcome = () => {
     const rootNavigation = navigation.getParent();
