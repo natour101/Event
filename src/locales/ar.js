@@ -76,6 +76,12 @@ export default {
     nearby: 'أحداث قريبة منك',
     newest: 'أحدث الفعاليات',
     bookNow: 'احجز الآن',
+    stats: {
+      title: 'أرقام اليوم',
+      events: 'الفعاليات',
+      tournaments: 'البطولات',
+      users: 'المستخدمون',
+    },
   },
   explore: {
     title: 'استكشف الفعاليات',

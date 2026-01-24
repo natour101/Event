@@ -34,12 +34,14 @@ export default function HomeScreen({ navigation }) {
     featured: [],
     nearby: [],
     newest: [],
+    stats: {},
   });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const fetchHome = useCallback(async () => {
+    setLoading(true);
     setError('');
     try {
       const [homeResponse, categoryResponse] = await Promise.all([
@@ -50,6 +52,7 @@ export default function HomeScreen({ navigation }) {
         featured: unwrapCollection(homeResponse.data?.featured),
         nearby: unwrapCollection(homeResponse.data?.nearby),
         newest: unwrapCollection(homeResponse.data?.newest),
+        stats: homeResponse.data?.stats || {},
       });
       setCategories(unwrapCollection(categoryResponse.data?.items));
     } catch (fetchError) {
@@ -70,6 +73,13 @@ export default function HomeScreen({ navigation }) {
     }
     action?.();
   };
+
+  const stats = homeData.stats || {};
+  const statItems = [
+    { key: 'events', label: t('home.stats.events'), value: stats.events ?? 0 },
+    { key: 'tournaments', label: t('home.stats.tournaments'), value: stats.tournaments ?? 0 },
+    { key: 'users', label: t('home.stats.users'), value: stats.users ?? 0 },
+  ];
 
   return (
     <ScrollView
@@ -104,12 +114,24 @@ export default function HomeScreen({ navigation }) {
         </Pressable>
       </Pressable>
 
+      <SectionHeader title={t('home.stats.title')} />
+      <View style={styles.statsRow}>
+        {statItems.map(item => (
+          <View key={item.key} style={styles.statCard}>
+            <Text style={styles.statValue}>{loading ? '—' : item.value}</Text>
+            <Text style={styles.statLabel}>{item.label}</Text>
+          </View>
+        ))}
+      </View>
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {loading ? <Text style={styles.loadingText}>{t('common.loading')}</Text> : null}
+
       <SectionHeader
         title={t('home.featured')}
         action={t('common.viewAll')}
         onActionPress={() => handleAuthPress(() => navigation.navigate('Explore'))}
       />
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
       {homeData.featured.map(event => (
         <EventCard
           key={event.id}
@@ -124,6 +146,9 @@ export default function HomeScreen({ navigation }) {
           }
         />
       ))}
+      {!loading && !error && homeData.featured.length === 0 ? (
+        <Text style={styles.emptyText}>{t('common.empty')}</Text>
+      ) : null}
 
       <View style={styles.categoryRow}>
         <CategoryPill label={t('categories.all')} active />
@@ -131,6 +156,9 @@ export default function HomeScreen({ navigation }) {
           <CategoryPill key={category.id} label={category.name} />
         ))}
       </View>
+      {!loading && !error && categories.length === 0 ? (
+        <Text style={styles.emptyText}>{t('common.empty')}</Text>
+      ) : null}
 
       <SectionHeader
         title={t('home.nearby')}
@@ -155,6 +183,9 @@ export default function HomeScreen({ navigation }) {
           </View>
         ))}
       </View>
+      {!loading && !error && homeData.nearby.length === 0 ? (
+        <Text style={styles.emptyText}>{t('common.empty')}</Text>
+      ) : null}
 
       <SectionHeader
         title={t('home.newest')}
@@ -176,6 +207,9 @@ export default function HomeScreen({ navigation }) {
         />
       ))}
       </View>
+      {!loading && !error && homeData.newest.length === 0 ? (
+        <Text style={styles.emptyText}>{t('common.empty')}</Text>
+      ) : null}
     </ScrollView>
   );
 }
@@ -225,6 +259,32 @@ const createStyles = (theme, isRTL) =>
       gap: 10,
       flexWrap: 'wrap',
     },
+    statsRow: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      gap: 12,
+      flexWrap: 'wrap',
+    },
+    statCard: {
+      flexBasis: '30%',
+      flexGrow: 1,
+      minWidth: 110,
+      padding: 14,
+      borderRadius: 16,
+      backgroundColor: theme.surface,
+      borderWidth: 1,
+      borderColor: theme.border,
+      alignItems: isRTL ? 'flex-end' : 'flex-start',
+      gap: 6,
+    },
+    statValue: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: '700',
+    },
+    statLabel: {
+      color: theme.muted,
+      fontSize: 12,
+    },
     nearbyRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       gap: 14,
@@ -237,6 +297,14 @@ const createStyles = (theme, isRTL) =>
     },
     errorText: {
       color: theme.warning,
+      fontSize: 12,
+    },
+    loadingText: {
+      color: theme.muted,
+      fontSize: 12,
+    },
+    emptyText: {
+      color: theme.muted,
       fontSize: 12,
     },
   });
