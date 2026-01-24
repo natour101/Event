@@ -9,7 +9,7 @@ export default function EventCard({ event, style, actionLabel, onPress }) {
   const { isRTL } = useLanguage();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
 
-  const imageUrl = resolveMediaUrl(event?.image);
+  const imageUrl = resolveMediaUrl(event?.image || event?.image_url);
 
   return (
     <Pressable style={[styles.card, style]} onPress={onPress} disabled={!onPress}>
