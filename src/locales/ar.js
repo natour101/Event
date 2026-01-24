@@ -150,6 +150,8 @@ export default {
     updated: 'تم تحديث البيانات بنجاح',
     passwordUpdated: 'تم تحديث كلمة المرور',
     avatarUpdated: 'تم تحديث صورة البروفايل',
+    guestTitle: 'سجّل الدخول لإدارة حسابك',
+    guestSubtitle: 'سجّل الدخول لتحديث بياناتك ورفع صورة وإدارة الإعدادات.',
   },
   notifications: {
     title: 'الإشعارات',

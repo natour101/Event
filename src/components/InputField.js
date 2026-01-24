@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -9,24 +9,33 @@ export default function InputField({
   trailingIcon,
   containerStyle,
   inputStyle,
+  onPress,
+  onPressIn,
+  editable = true,
   ...props
 }) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const isPressable = Boolean(onPress || onPressIn);
+  const Wrapper = isPressable ? Pressable : View;
+  const inputEditable = isPressable ? false : editable;
 
   return (
     <View style={containerStyle}>
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.inputWrapper}>
+      <Wrapper style={styles.inputWrapper} onPress={onPress} onPressIn={onPressIn}>
         {leadingIcon ? <View style={styles.iconSlot}>{leadingIcon}</View> : null}
         <TextInput
           placeholderTextColor={theme.textDark}
           style={[styles.input, inputStyle]}
+          editable={inputEditable}
+          pointerEvents={isPressable ? 'none' : 'auto'}
+          onPressIn={isPressable ? undefined : onPressIn}
           {...props}
         />
         {trailingIcon ? <View style={styles.iconSlot}>{trailingIcon}</View> : null}
-      </View>
+      </Wrapper>
     </View>
   );
 }
