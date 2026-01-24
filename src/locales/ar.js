@@ -50,10 +50,15 @@ export default {
     orContinue: 'أو استمر باستخدام',
     terms: 'بمتابعتك، أنت توافق على شروط الخدمة وسياسة الخصوصية',
     createAccount: 'إنشاء حساب جديد',
-    adminLogin: 'الكبسة لمعرفة عدد الحجوزات',
+    adminLogin: 'لوحة الإدارة',
     adminCode: 'كود الإدارة',
     adminCodePlaceholder: 'أدخل كود الإدارة',
     adminCodeError: 'يرجى إدخال كود الإدارة الصحيح',
+    social: {
+      apple: 'آبل',
+      google: 'جوجل',
+      twitter: 'تويتر',
+    },
     errors: {
       required: 'هذا الحقل مطلوب',
       email: 'أدخل بريدًا إلكترونيًا صحيحًا',
@@ -154,7 +159,7 @@ export default {
     passwordUpdated: 'تم تحديث كلمة المرور',
     avatarUpdated: 'تم تحديث صورة البروفايل',
     guestTitle: 'سجّل الدخول أولاً',
-    guestSubtitle: 'لاستخدام كل المزايا يجب تسجيل الدخول مثل التطبيقات الكبيرة.',
+    guestSubtitle: 'سجّل الدخول لعرض المحتوى وإدارة حسابك.',
   },
   notifications: {
     title: 'الإشعارات',

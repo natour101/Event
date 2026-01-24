@@ -46,12 +46,13 @@ export default function AuthScreen({ navigation, route }) {
   );
 
   const onChange = (key, value) => {
-    setForm(prev => ({ ...prev, [key]: value }));
+    const nextValue = key === 'email' ? value.trimStart() : value;
+    setForm(prev => ({ ...prev, [key]: nextValue }));
   };
 
   const validate = (targetMode = mode) => {
     const nextErrors = {};
-    const emailValue = form.email.trim();
+    const emailValue = form.email.trim().replace(/\s+/g, '');
     const usernameValue = form.username.trim();
     const phoneValue = form.phone.trim();
     if (!emailValue) nextErrors.email = t('auth.errors.required');
@@ -82,9 +83,11 @@ export default function AuthScreen({ navigation, route }) {
     setSubmitError('');
     setSubmitting(true);
     try {
-      const emailValue = form.email.trim();
+      const emailValue = form.email.trim().replace(/\s+/g, '').toLowerCase();
+      const passwordValue =
+        overrideMode === 'login' ? form.password.trim() : form.password;
       if (overrideMode === 'login') {
-        await login({ email: emailValue, password: form.password });
+        await login({ email: emailValue, password: passwordValue });
         await addNotification({
           title: t('notifications.welcomeTitle'),
           message: t('notifications.welcomeMessage'),
@@ -92,7 +95,7 @@ export default function AuthScreen({ navigation, route }) {
       } else {
         await register({
           email: emailValue,
-          password: form.password,
+          password: passwordValue,
           username: form.username.trim(),
           phone_number: form.phone.trim(),
         });
@@ -108,8 +111,12 @@ export default function AuthScreen({ navigation, route }) {
       }
     } catch (error) {
       const response = error?.response || {};
+      const errorMessages = response?.errors
+        ? Object.values(response.errors).flat()
+        : [];
       setSubmitError(
-        response?.message ||
+        errorMessages[0] ||
+          response?.message ||
           response?.error ||
           error?.message ||
           'Request failed'
@@ -200,6 +207,7 @@ export default function AuthScreen({ navigation, route }) {
                   value={form.email}
                   onChangeText={value => onChange('email', value)}
                   autoCapitalize="none"
+                  autoCorrect={false}
                   keyboardType="email-address"
                   leadingIcon={<Icon name="email-outline" size={18} color={theme.text} />}
                 />
@@ -212,6 +220,8 @@ export default function AuthScreen({ navigation, route }) {
                   secureTextEntry
                   value={form.password}
                   onChangeText={value => onChange('password', value)}
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   leadingIcon={<Icon name="eye-outline" size={18} color={theme.text} />}
                   trailingIcon={<Icon name="emoticon-outline" size={18} color={theme.text} />}
                 />
@@ -240,17 +250,17 @@ export default function AuthScreen({ navigation, route }) {
               </View>
               <View style={styles.socialRow}>
                 <SocialButton
-                  label="Apple"
+                  label={t('auth.social.apple')}
                   icon={<Icon family="fa5" name="apple" size={16} color={theme.text} />}
                   onPress={() => Alert.alert(t('common.unavailable'))}
                 />
                 <SocialButton
-                  label="Google"
+                  label={t('auth.social.google')}
                   icon={<Icon family="fa5" name="google" size={16} color={theme.text} />}
                   onPress={() => Alert.alert(t('common.unavailable'))}
                 />
                 <SocialButton
-                  label="Twitter"
+                  label={t('auth.social.twitter')}
                   icon={<Icon family="fa5" name="x-twitter" size={16} color={theme.text} />}
                   onPress={() => Alert.alert(t('common.unavailable'))}
                 />
