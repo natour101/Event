@@ -50,7 +50,15 @@ export default {
     orContinue: 'Or continue with',
     terms: 'By continuing, you agree to the Terms of Service and Privacy Policy',
     createAccount: 'Create a new account',
-    adminLogin: 'Admin app login',
+    adminLogin: 'Admin dashboard',
+    adminCode: 'Admin code',
+    adminCodePlaceholder: 'Enter admin code',
+    adminCodeError: 'Please enter the correct admin code',
+    social: {
+      apple: 'Apple',
+      google: 'Google',
+      twitter: 'Twitter',
+    },
     errors: {
       required: 'This field is required',
       email: 'Enter a valid email address',
@@ -150,8 +158,8 @@ export default {
     updated: 'Profile updated successfully',
     passwordUpdated: 'Password updated successfully',
     avatarUpdated: 'Profile image updated',
-    guestTitle: 'Sign in to manage your profile',
-    guestSubtitle: 'Log in to update your details, upload a photo, and manage settings.',
+    guestTitle: 'Please sign in first',
+    guestSubtitle: 'Sign in to view content and manage your account.',
   },
   notifications: {
     title: 'Notifications',

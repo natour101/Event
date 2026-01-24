@@ -42,7 +42,11 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request)
     {
-        $user = User::where('email', $request->input('email'))->first();
+        $identifier = $request->input('identifier');
+
+        $user = User::where('email', $identifier)
+            ->orWhere('username', $identifier)
+            ->first();
 
         if (!$user || !Hash::check($request->input('password'), $user->password)) {
             return ApiResponse::error('Invalid credentials', ['email' => ['Invalid credentials']], 401);

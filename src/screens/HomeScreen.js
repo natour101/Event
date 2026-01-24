@@ -25,9 +25,10 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen({ navigation }) {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const { unreadCount } = useNotifications();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const isAuthed = Boolean(user || token);
   const [homeData, setHomeData] = useState({
     featured: [],
     nearby: [],
@@ -61,6 +62,14 @@ export default function HomeScreen({ navigation }) {
     fetchHome();
   }, [fetchHome]);
 
+  const handleAuthPress = action => {
+    if (!isAuthed) {
+      navigation.navigate('Profile');
+      return;
+    }
+    action?.();
+  };
+
   return (
     <ScrollView
       style={styles.container}
@@ -73,13 +82,13 @@ export default function HomeScreen({ navigation }) {
         rightElement={
           <NotificationBell
             count={unreadCount}
-            onPress={() => navigation.navigate('Notifications')}
+            onPress={() => handleAuthPress(() => navigation.navigate('Notifications'))}
           />
         }
       />
       <Pressable
         style={styles.searchRow}
-        onPress={() => navigation.navigate('Explore', { focusSearch: true })}
+        onPress={() => handleAuthPress(() => navigation.navigate('Explore', { focusSearch: true }))}
       >
         <Icon name="magnify" size={18} color={theme.muted} />
         <Text style={styles.searchPlaceholder}>{t('home.search')}</Text>
@@ -87,7 +96,7 @@ export default function HomeScreen({ navigation }) {
           style={styles.filterIcon}
           onPress={event => {
             event?.stopPropagation?.();
-            navigation.navigate('Explore', { focusFilter: true });
+            handleAuthPress(() => navigation.navigate('Explore', { focusFilter: true }));
           }}
         >
           <Icon name="tune-variant" size={18} color={theme.text} />
@@ -97,7 +106,7 @@ export default function HomeScreen({ navigation }) {
       <SectionHeader
         title={t('home.featured')}
         action={t('common.viewAll')}
-        onActionPress={() => navigation.navigate('Explore')}
+        onActionPress={() => handleAuthPress(() => navigation.navigate('Explore'))}
       />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       {homeData.featured.map(event => (
@@ -109,7 +118,9 @@ export default function HomeScreen({ navigation }) {
           }}
           actionLabel={t('home.bookNow')}
           style={styles.featuredCard}
-          onPress={() => navigation.navigate('EventDetails', { eventId: event.id })}
+          onPress={() =>
+            handleAuthPress(() => navigation.navigate('EventDetails', { eventId: event.id }))
+          }
         />
       ))}
 
@@ -123,7 +134,7 @@ export default function HomeScreen({ navigation }) {
       <SectionHeader
         title={t('home.nearby')}
         action={t('common.viewAll')}
-        onActionPress={() => navigation.navigate('Explore')}
+        onActionPress={() => handleAuthPress(() => navigation.navigate('Explore'))}
       />
       <View style={styles.nearbyRow}>
         {homeData.nearby.map(event => (
@@ -134,7 +145,11 @@ export default function HomeScreen({ navigation }) {
                 date: event.distance_km ? `${event.distance_km} كم` : event.date_label,
               }}
               actionLabel={event.distance_km ? `${event.distance_km} كم` : event.date_label}
-              onPress={() => navigation.navigate('EventDetails', { eventId: event.id })}
+              onPress={() =>
+                handleAuthPress(() =>
+                  navigation.navigate('EventDetails', { eventId: event.id })
+                )
+              }
             />
           </View>
         ))}
@@ -143,20 +158,22 @@ export default function HomeScreen({ navigation }) {
       <SectionHeader
         title={t('home.newest')}
         action={t('common.viewAll')}
-        onActionPress={() => navigation.navigate('Explore')}
+        onActionPress={() => handleAuthPress(() => navigation.navigate('Explore'))}
       />
       <View style={styles.list}>
         {homeData.newest.map(event => (
-          <EventCard
-            key={event.id}
-            event={{
-              ...event,
-              date: event.date_label,
-            }}
-            actionLabel="+"
-            onPress={() => navigation.navigate('EventDetails', { eventId: event.id })}
-          />
-        ))}
+        <EventCard
+          key={event.id}
+          event={{
+            ...event,
+            date: event.date_label,
+          }}
+          actionLabel="+"
+          onPress={() =>
+            handleAuthPress(() => navigation.navigate('EventDetails', { eventId: event.id }))
+          }
+        />
+      ))}
       </View>
     </ScrollView>
   );

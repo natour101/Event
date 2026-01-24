@@ -12,16 +12,19 @@ import {
 import Icon from '../components/Icon';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenHeader from '../components/ScreenHeader';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { API_CONFIG } from '../constants/api';
 import { eventsApi } from '../services/api';
 import { resolveMediaUrl } from '../utils/media';
 
-export default function EventDetailsScreen({ route }) {
+export default function EventDetailsScreen({ route, navigation }) {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
+  const { user, token } = useAuth();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const isAuthed = Boolean(user || token);
   const [event, setEvent] = useState(null);
   const [error, setError] = useState('');
   const [actionError, setActionError] = useState('');
@@ -50,6 +53,14 @@ export default function EventDetailsScreen({ route }) {
   const priceLabel = event?.price
     ? `${event.price} ${t('common.currency')}`
     : t('common.free');
+
+  const requireAuth = action => {
+    if (!isAuthed) {
+      navigation.navigate('Profile');
+      return;
+    }
+    action?.();
+  };
 
   const onShare = async () => {
     setActionError('');
@@ -116,10 +127,17 @@ export default function EventDetailsScreen({ route }) {
           imageStyle={styles.heroImage}
         >
           <View style={styles.heroActions}>
-            <Pressable style={styles.iconButton} onPress={onShare}>
+            <Pressable
+              style={styles.iconButton}
+              onPress={() => requireAuth(onShare)}
+            >
               <Icon name="share-variant" size={16} color={theme.text} />
             </Pressable>
-            <Pressable style={styles.iconButton} onPress={onToggleLike} disabled={isLiking}>
+            <Pressable
+              style={styles.iconButton}
+              onPress={() => requireAuth(onToggleLike)}
+              disabled={isLiking}
+            >
               <Icon
                 name={event?.liked_by_me ? 'heart' : 'heart-outline'}
                 size={16}
@@ -163,7 +181,11 @@ export default function EventDetailsScreen({ route }) {
             {event?.organizer?.name || t('eventDetails.organizer')}
           </Text>
         </View>
-        <PrimaryButton label={t('common.follow')} variant="secondary" />
+      <PrimaryButton
+        label={t('common.follow')}
+        variant="secondary"
+        onPress={() => requireAuth()}
+      />
       </View>
 
       <View style={styles.card}>
@@ -178,7 +200,13 @@ export default function EventDetailsScreen({ route }) {
         <Text style={styles.cardValue}>{event?.location}</Text>
         <Pressable
           style={[styles.mapPreview, !mapUrl && styles.mapPreviewDisabled]}
-          onPress={() => (mapUrl ? Linking.openURL(mapUrl) : null)}
+          onPress={() =>
+            requireAuth(() => {
+              if (mapUrl) {
+                Linking.openURL(mapUrl);
+              }
+            })
+          }
           disabled={!mapUrl}
         >
           <Icon name="map-outline" size={18} color="#2f1c14" />
@@ -197,7 +225,7 @@ export default function EventDetailsScreen({ route }) {
           event?.booked_by_me ? t('eventDetails.booked') : t('eventDetails.registerNow')
         }
         iconComponent={<Icon name="arrow-left" size={18} color={theme.text} />}
-        onPress={onBook}
+        onPress={() => requireAuth(onBook)}
         style={isBooking || event?.booked_by_me ? styles.disabledButton : null}
         disabled={isBooking || event?.booked_by_me}
       />
