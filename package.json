@@ -21,11 +21,7 @@
     "react": "19.2.0",
     "react-native": "0.83.1",
     "react-native-gesture-handler": "^2.25.0",
-<<<<<<< Updated upstream
-    "react-native-image-picker": "*",
-=======
     "react-native-image-picker": "^7.2.3",
->>>>>>> Stashed changes
     "react-native-reanimated": "4.2.1",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "4.20.0",
