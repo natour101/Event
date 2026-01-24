@@ -150,6 +150,8 @@ export default {
     updated: 'Profile updated successfully',
     passwordUpdated: 'Password updated successfully',
     avatarUpdated: 'Profile image updated',
+    guestTitle: 'Sign in to manage your profile',
+    guestSubtitle: 'Log in to update your details, upload a photo, and manage settings.',
   },
   notifications: {
     title: 'Notifications',

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
+  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -25,7 +26,7 @@ const validateEmail = value => /\S+@\S+\.\S+/.test(value);
 export default function ProfileScreen() {
   const { t, isRTL, toggleLanguage } = useLanguage();
   const { theme, mode, toggleMode } = useTheme();
-  const { user, logout, updateUser } = useAuth();
+  const { user, token, logout, updateUser } = useAuth();
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
   const [form, setForm] = useState({
@@ -76,8 +77,19 @@ export default function ProfileScreen() {
   }, [user, hydrateForm]);
 
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    if (user || token) {
+      fetchProfile();
+    }
+  }, [fetchProfile, token, user]);
+
+  const goToWelcome = () => {
+    const rootNavigation = navigation.getParent();
+    if (rootNavigation) {
+      rootNavigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+    } else {
+      navigation.navigate('Welcome');
+    }
+  };
 
   const onChange = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -167,6 +179,30 @@ export default function ProfileScreen() {
   const userEmail = user?.email || t('profile.noData');
   const userPhone = user?.phone_number || user?.phone || t('profile.noData');
   const avatarUri = resolveMediaUrl(form.profile_image_url || user?.profile_image_url);
+
+  if (!user && !token) {
+    return (
+      <ImageBackground
+        source={{
+          uri: 'https://images.unsplash.com/photo-1507874457470-272b3c8d8ee2?auto=format&fit=crop&w=1200&q=80',
+        }}
+        style={styles.guestBackground}
+        blurRadius={12}
+      >
+        <View style={styles.guestOverlay} />
+        <View style={styles.guestContent}>
+          <View style={styles.guestCard}>
+            <View style={styles.guestIcon}>
+              <Icon name="account-circle-outline" size={36} color={theme.text} />
+            </View>
+            <Text style={styles.guestTitle}>{t('profile.guestTitle')}</Text>
+            <Text style={styles.guestSubtitle}>{t('profile.guestSubtitle')}</Text>
+            <PrimaryButton label={t('common.login')} onPress={goToWelcome} />
+          </View>
+        </View>
+      </ImageBackground>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -316,7 +352,7 @@ export default function ProfileScreen() {
         variant="secondary"
         onPress={async () => {
           await logout();
-          navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+          goToWelcome();
         }}
       />
     </ScrollView>
@@ -328,6 +364,47 @@ const createStyles = (theme, isRTL) =>
     container: {
       flex: 1,
       backgroundColor: theme.background,
+    },
+    guestBackground: {
+      flex: 1,
+    },
+    guestOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    },
+    guestContent: {
+      flex: 1,
+      justifyContent: 'center',
+      padding: 24,
+    },
+    guestCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 22,
+      padding: 24,
+      alignItems: 'center',
+      gap: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    guestIcon: {
+      width: 72,
+      height: 72,
+      borderRadius: 22,
+      backgroundColor: theme.surfaceLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    guestTitle: {
+      color: theme.text,
+      fontSize: 20,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    guestSubtitle: {
+      color: theme.textDark,
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 8,
     },
     content: {
       padding: 20,

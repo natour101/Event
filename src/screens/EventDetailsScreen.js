@@ -105,11 +105,13 @@ export default function EventDetailsScreen({ route }) {
     );
   }
 
+  const heroImage = resolveMediaUrl(event?.image || event?.image_url);
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {event?.image ? (
+      {heroImage ? (
         <ImageBackground
-          source={{ uri: resolveMediaUrl(event.image) }}
+          source={{ uri: heroImage }}
           style={styles.hero}
           imageStyle={styles.heroImage}
         >
