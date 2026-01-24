@@ -90,7 +90,6 @@ export default function AuthScreen({ navigation, route }) {
         await login({
           email: emailValue,
           password: passwordValue,
-          username: form.username.trim() || emailValue,
         });
         await addNotification({
           title: t('notifications.welcomeTitle'),
