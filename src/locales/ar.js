@@ -21,6 +21,8 @@ export default {
     confirm: 'تأكيد',
     cancel: 'إلغاء',
     unavailable: 'غير متاح حالياً',
+    rating: 'التقييم',
+    views: 'مشاهدة',
   },
   tabs: {
     home: 'الرئيسية',

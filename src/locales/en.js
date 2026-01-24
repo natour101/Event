@@ -21,6 +21,8 @@ export default {
     confirm: 'Confirm',
     cancel: 'Cancel',
     unavailable: 'Currently unavailable',
+    rating: 'rating',
+    views: 'views',
   },
   tabs: {
     home: 'Home',

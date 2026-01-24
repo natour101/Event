@@ -3,13 +3,33 @@ import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { resolveMediaUrl } from '../utils/media';
+import Icon from './Icon';
 
 export default function EventCard({ event, style, actionLabel, onPress }) {
   const { theme } = useTheme();
-  const { isRTL } = useLanguage();
+  const { isRTL, t } = useLanguage();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
 
   const imageUrl = resolveMediaUrl(event?.image || event?.image_url);
+  const priceLabel =
+    event?.price === 0
+      ? t('common.free')
+      : event?.price
+        ? `${event.price} ${t('common.currency')}`
+        : null;
+  const metaItems = [
+    event?.location ? { icon: 'map-marker', text: event.location } : null,
+    priceLabel ? { icon: 'cash', text: priceLabel } : null,
+    typeof event?.rating === 'number'
+      ? { icon: 'star', text: `${event.rating} ${t('common.rating')}` }
+      : null,
+    typeof event?.views === 'number'
+      ? { icon: 'eye', text: `${event.views} ${t('common.views')}` }
+      : null,
+    typeof event?.attendees === 'number'
+      ? { icon: 'account-group', text: `${event.attendees} ${t('eventDetails.attendees')}` }
+      : null,
+  ].filter(Boolean);
 
   return (
     <Pressable style={[styles.card, style]} onPress={onPress} disabled={!onPress}>
@@ -29,6 +49,18 @@ export default function EventCard({ event, style, actionLabel, onPress }) {
         <Text style={styles.subtitle} numberOfLines={2} ellipsizeMode="tail">
           {event.subtitle}
         </Text>
+        {metaItems.length ? (
+          <View style={styles.metaRow}>
+            {metaItems.map((item, index) => (
+              <View key={`${item.text}-${index}`} style={styles.metaItem}>
+                <Icon name={item.icon} size={12} color={theme.muted} />
+                <Text style={styles.metaText} numberOfLines={1} ellipsizeMode="tail">
+                  {item.text}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
         <View style={styles.footer}>
           <Text style={styles.date}>{event.date}</Text>
           {actionLabel ? (
@@ -84,6 +116,26 @@ const createStyles = (theme, isRTL) =>
       fontSize: 13,
       marginTop: 6,
       textAlign: isRTL ? 'right' : 'left',
+    },
+    metaRow: {
+      marginTop: 8,
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    metaItem: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      borderRadius: 12,
+      backgroundColor: theme.surfaceLight,
+      maxWidth: '100%',
+    },
+    metaText: {
+      color: theme.muted,
+      fontSize: 11,
     },
     footer: {
       marginTop: 12,
