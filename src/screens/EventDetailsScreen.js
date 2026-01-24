@@ -17,6 +17,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { API_CONFIG } from '../constants/api';
 import { eventsApi } from '../services/api';
+import { unwrapResource } from '../utils/api';
 import { resolveMediaUrl } from '../utils/media';
 
 export default function EventDetailsScreen({ route, navigation }) {
@@ -38,7 +39,7 @@ export default function EventDetailsScreen({ route, navigation }) {
     setError('');
     try {
       const response = await eventsApi.show(eventId);
-      setEvent(response.data?.event || null);
+      setEvent(unwrapResource(response.data?.event));
     } catch (fetchError) {
       setError(fetchError?.message || t('common.error'));
     }
@@ -81,7 +82,7 @@ export default function EventDetailsScreen({ route, navigation }) {
       const response = event?.liked_by_me
         ? await eventsApi.unlike(eventId)
         : await eventsApi.like(eventId);
-      setEvent(response.data?.event || event);
+      setEvent(unwrapResource(response.data?.event) || event);
     } catch (likeError) {
       setActionError(likeError?.message || t('common.error'));
     } finally {
@@ -95,7 +96,7 @@ export default function EventDetailsScreen({ route, navigation }) {
     setIsBooking(true);
     try {
       const response = await eventsApi.book(eventId);
-      setEvent(response.data?.event || event);
+      setEvent(unwrapResource(response.data?.event) || event);
     } catch (bookError) {
       const message = bookError?.response?.message || bookError?.message || '';
       setActionError(

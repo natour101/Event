@@ -11,6 +11,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { adminApi } from '../services/api';
+import { unwrapCollection } from '../utils/api';
 
 export default function AdminDashboardScreen() {
   const { t, isRTL } = useLanguage();
@@ -26,7 +27,7 @@ export default function AdminDashboardScreen() {
     setError('');
     try {
       const response = await adminApi.eventsSummary();
-      setEvents(response.data?.items || []);
+      setEvents(unwrapCollection(response.data?.items));
     } catch (fetchError) {
       setError(fetchError?.message || t('common.error'));
     } finally {
@@ -39,7 +40,7 @@ export default function AdminDashboardScreen() {
       setError('');
       try {
         const response = await adminApi.eventRegistrations(eventId);
-        const registrations = response.data?.registrations || [];
+        const registrations = unwrapCollection(response.data?.registrations);
         setEvents(prev =>
           prev.map(item =>
             item.id === eventId ? { ...item, registrations } : item

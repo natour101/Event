@@ -52,9 +52,9 @@ class HomeController extends Controller
         ];
 
         return ApiResponse::success('Home data', [
-            'featured' => EventResource::collection($featured),
-            'nearby' => EventResource::collection($nearby),
-            'newest' => EventResource::collection($newest),
+            'featured' => EventResource::collection($featured)->resolve(),
+            'nearby' => EventResource::collection($nearby)->resolve(),
+            'newest' => EventResource::collection($newest)->resolve(),
             'stats' => $stats,
         ]);
     }

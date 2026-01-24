@@ -19,6 +19,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
 import { categoryApi, homeApi } from '../services/api';
+import { unwrapCollection } from '../utils/api';
 
 const { width } = Dimensions.get('window');
 
@@ -46,11 +47,11 @@ export default function HomeScreen({ navigation }) {
         categoryApi.list(),
       ]);
       setHomeData({
-        featured: homeResponse.data?.featured || [],
-        nearby: homeResponse.data?.nearby || [],
-        newest: homeResponse.data?.newest || [],
+        featured: unwrapCollection(homeResponse.data?.featured),
+        nearby: unwrapCollection(homeResponse.data?.nearby),
+        newest: unwrapCollection(homeResponse.data?.newest),
       });
-      setCategories(categoryResponse.data?.items || []);
+      setCategories(unwrapCollection(categoryResponse.data?.items));
     } catch (fetchError) {
       setError(fetchError?.message || t('common.error'));
     } finally {

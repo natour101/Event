@@ -39,7 +39,7 @@ class TournamentController extends Controller
             ->paginate($request->integer('per_page', 10));
 
         return ApiResponse::success('Tournaments fetched', [
-            'items' => TournamentResource::collection($tournaments),
+            'items' => TournamentResource::collection($tournaments)->resolve(),
             'pagination' => [
                 'total' => $tournaments->total(),
                 'per_page' => $tournaments->perPage(),
@@ -52,7 +52,7 @@ class TournamentController extends Controller
     public function show(Tournament $tournament)
     {
         return ApiResponse::success('Tournament details', [
-            'tournament' => new TournamentResource($tournament),
+            'tournament' => (new TournamentResource($tournament))->resolve(),
         ]);
     }
 
@@ -61,7 +61,7 @@ class TournamentController extends Controller
         $tournament = Tournament::create($request->validated());
 
         return ApiResponse::success('Tournament created', [
-            'tournament' => new TournamentResource($tournament),
+            'tournament' => (new TournamentResource($tournament))->resolve(),
         ], 201);
     }
 
@@ -70,7 +70,7 @@ class TournamentController extends Controller
         $tournament->update($request->validated());
 
         return ApiResponse::success('Tournament updated', [
-            'tournament' => new TournamentResource($tournament),
+            'tournament' => (new TournamentResource($tournament))->resolve(),
         ]);
     }
 

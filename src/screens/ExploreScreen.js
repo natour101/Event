@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { categoryApi, eventsApi } from '../services/api';
+import { unwrapCollection } from '../utils/api';
 
 export default function ExploreScreen({ navigation, route }) {
   const { t, isRTL } = useLanguage();
@@ -31,7 +32,7 @@ export default function ExploreScreen({ navigation, route }) {
   const fetchCategories = useCallback(async () => {
     try {
       const response = await categoryApi.list();
-      setCategories(response.data?.items || []);
+      setCategories(unwrapCollection(response.data?.items));
     } catch (fetchError) {
       setError(fetchError?.message || t('common.error'));
     }
@@ -46,7 +47,7 @@ export default function ExploreScreen({ navigation, route }) {
         search: search || undefined,
         category_id: selectedCategory || undefined,
       });
-      const nextItems = response.data?.items || [];
+      const nextItems = unwrapCollection(response.data?.items);
       setEvents(prev => (reset ? nextItems : [...prev, ...nextItems]));
       const pagination = response.data?.pagination;
       setTotal(pagination?.total || nextItems.length);

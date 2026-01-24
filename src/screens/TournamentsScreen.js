@@ -14,6 +14,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { tournamentsApi } from '../services/api';
+import { unwrapCollection } from '../utils/api';
 
 export default function TournamentsScreen({ navigation }) {
   const { t, isRTL } = useLanguage();
@@ -35,7 +36,7 @@ export default function TournamentsScreen({ navigation }) {
         sort_by: 'starts_at',
         sort_dir: 'asc',
       });
-      setTournaments(response.data?.items || []);
+      setTournaments(unwrapCollection(response.data?.items));
     } catch (fetchError) {
       setError(fetchError?.message || t('common.error'));
     } finally {

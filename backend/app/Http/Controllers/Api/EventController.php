@@ -55,7 +55,7 @@ class EventController extends Controller
             ->paginate($request->integer('per_page', 10));
 
         return ApiResponse::success('Events fetched', [
-            'items' => EventResource::collection($events),
+            'items' => EventResource::collection($events)->resolve(),
             'pagination' => [
                 'total' => $events->total(),
                 'per_page' => $events->perPage(),
@@ -85,7 +85,7 @@ class EventController extends Controller
         $event->increment('views');
 
         return ApiResponse::success('Event details', [
-            'event' => new EventResource($event),
+            'event' => (new EventResource($event))->resolve(),
         ]);
     }
 
@@ -111,7 +111,7 @@ class EventController extends Controller
         }
 
         return ApiResponse::success('Event created', [
-            'event' => new EventResource($event),
+            'event' => (new EventResource($event))->resolve(),
         ], 201);
     }
 
@@ -139,7 +139,7 @@ class EventController extends Controller
         }
 
         return ApiResponse::success('Event updated', [
-            'event' => new EventResource($event),
+            'event' => (new EventResource($event))->resolve(),
         ]);
     }
 
@@ -172,7 +172,7 @@ class EventController extends Controller
         }
 
         return ApiResponse::success('Event liked', [
-            'event' => new EventResource($event),
+            'event' => (new EventResource($event))->resolve(),
         ]);
     }
 
@@ -196,7 +196,7 @@ class EventController extends Controller
         }
 
         return ApiResponse::success('Event unliked', [
-            'event' => new EventResource($event),
+            'event' => (new EventResource($event))->resolve(),
         ]);
     }
 
@@ -207,7 +207,7 @@ class EventController extends Controller
             $event->refresh();
 
             return ApiResponse::success('Event booked', [
-                'event' => new EventResource($event),
+                'event' => (new EventResource($event))->resolve(),
             ]);
         }
         $user = $request->user();
@@ -230,7 +230,7 @@ class EventController extends Controller
         }
 
         return ApiResponse::success('Event booked', [
-            'event' => new EventResource($event),
+            'event' => (new EventResource($event))->resolve(),
         ]);
     }
 }
