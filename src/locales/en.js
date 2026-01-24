@@ -76,6 +76,12 @@ export default {
     nearby: 'Nearby events',
     newest: 'Newest events',
     bookNow: 'Book now',
+    stats: {
+      title: 'Today in numbers',
+      events: 'Events',
+      tournaments: 'Tournaments',
+      users: 'Users',
+    },
   },
   explore: {
     title: 'Explore events',
