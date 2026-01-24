@@ -13,6 +13,7 @@ class LoginRequest extends ApiFormRequest
     {
         return [
             'email' => ['required', 'email'],
+            'username' => ['nullable', 'string'],
             'password' => ['required', 'string'],
         ];
     }
