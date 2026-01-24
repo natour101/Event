@@ -88,6 +88,7 @@ export default function AuthScreen({ navigation, route }) {
         overrideMode === 'login' ? form.password.trim() : form.password;
       if (overrideMode === 'login') {
         await login({
+          identifier: emailValue,
           email: emailValue,
           password: passwordValue,
         });

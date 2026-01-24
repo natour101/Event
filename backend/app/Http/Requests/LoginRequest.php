@@ -4,6 +4,17 @@ namespace App\Http\Requests;
 
 class LoginRequest extends ApiFormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $identifier = $this->input('identifier')
+            ?? $this->input('email')
+            ?? $this->input('username');
+
+        if ($identifier) {
+            $this->merge(['identifier' => $identifier]);
+        }
+    }
+
     public function authorize(): bool
     {
         return true;
@@ -12,8 +23,8 @@ class LoginRequest extends ApiFormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email'],
-            'username' => ['nullable', 'string'],
+            'identifier' => ['required', 'string'],
+            'email' => ['nullable', 'email'],
             'password' => ['required', 'string'],
         ];
     }

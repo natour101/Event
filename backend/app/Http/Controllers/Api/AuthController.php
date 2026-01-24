@@ -42,7 +42,7 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request)
     {
-        $identifier = $request->input('email') ?? $request->input('username');
+        $identifier = $request->input('identifier');
 
         $user = User::where('email', $identifier)
             ->orWhere('username', $identifier)
