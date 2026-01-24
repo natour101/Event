@@ -17,8 +17,12 @@ const getDevServerHost = () => {
 
 const normalizeBaseUrl = value => {
   if (!value || typeof value !== 'string') return null;
-  const trimmed = value.trim().replace(/\/+$/, '');
+  let trimmed = value.trim().replace(/\/+$/, '');
   if (!trimmed) return null;
+  if (!/^https?:\/\//i.test(trimmed)) {
+    const isLocalHost = /^(localhost|127\.0\.0\.1|10\.0\.2\.2)/i.test(trimmed);
+    trimmed = `${isLocalHost ? 'http' : 'https'}://${trimmed}`;
+  }
   return trimmed.match(/\/api$/) ? trimmed : `${trimmed}/api`;
 };
 
