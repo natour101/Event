@@ -20,6 +20,13 @@ Update `.env` with your database credentials.
 php artisan migrate
 ```
 
+### Storage (avatars & event images)
+```bash
+php artisan storage:link
+```
+
+Uploaded files are stored under `storage/app/public/avatars` and `storage/app/public/events`.
+
 ### Run
 ```bash
 php artisan serve

@@ -9,6 +9,7 @@ use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Services\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -17,8 +18,17 @@ class EventController extends Controller
     public function index(Request $request)
     {
         $query = Event::query()
-            ->with(['categoryRelation'])
-            ->withCount(['likes', 'bookings']);
+            ->with(['categoryRelation']);
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $query->withCount($withCounts);
+        }
 
         if ($search = $request->get('search')) {
             $query->where(function ($builder) use ($search) {
@@ -57,8 +67,21 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        $event->load(['organizer', 'categoryRelation', 'bookings.user'])
-            ->loadCount(['likes', 'bookings']);
+        $relations = ['organizer', 'categoryRelation'];
+        if (Schema::hasTable('event_bookings')) {
+            $relations[] = 'bookings.user';
+        }
+        $event->load($relations);
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $event->loadCount($withCounts);
+        }
         $event->increment('views');
 
         return ApiResponse::success('Event details', [
@@ -75,7 +98,17 @@ class EventController extends Controller
 
         $event = Event::create(array_merge($payload, ['user_id' => $request->user()?->id]));
 
-        $event->load(['categoryRelation'])->loadCount(['likes', 'bookings']);
+        $event->load(['categoryRelation']);
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $event->loadCount($withCounts);
+        }
 
         return ApiResponse::success('Event created', [
             'event' => new EventResource($event),
@@ -93,7 +126,17 @@ class EventController extends Controller
         }
 
         $event->update($payload);
-        $event->load(['categoryRelation'])->loadCount(['likes', 'bookings']);
+        $event->load(['categoryRelation']);
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $event->loadCount($withCounts);
+        }
 
         return ApiResponse::success('Event updated', [
             'event' => new EventResource($event),
@@ -114,7 +157,19 @@ class EventController extends Controller
             'user_id' => $user->id,
         ]);
 
-        $event->load(['bookings.user'])->loadCount(['likes', 'bookings']);
+        if (Schema::hasTable('event_bookings')) {
+            $event->load(['bookings.user']);
+        }
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $event->loadCount($withCounts);
+        }
 
         return ApiResponse::success('Event liked', [
             'event' => new EventResource($event),
@@ -126,7 +181,19 @@ class EventController extends Controller
         $user = $request->user();
         $event->likes()->where('user_id', $user->id)->delete();
 
-        $event->load(['bookings.user'])->loadCount(['likes', 'bookings']);
+        if (Schema::hasTable('event_bookings')) {
+            $event->load(['bookings.user']);
+        }
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $event->loadCount($withCounts);
+        }
 
         return ApiResponse::success('Event unliked', [
             'event' => new EventResource($event),
@@ -142,7 +209,19 @@ class EventController extends Controller
 
         $event->attendees_count = $event->bookings()->count();
         $event->save();
-        $event->load(['bookings.user'])->loadCount(['likes', 'bookings']);
+        if (Schema::hasTable('event_bookings')) {
+            $event->load(['bookings.user']);
+        }
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $event->loadCount($withCounts);
+        }
 
         return ApiResponse::success('Event booked', [
             'event' => new EventResource($event),
