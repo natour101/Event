@@ -35,6 +35,7 @@ export default function AuthScreen({ navigation, route }) {
     username: '',
     phone: '',
   });
+  const [adminCode, setAdminCode] = useState('');
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -45,13 +46,17 @@ export default function AuthScreen({ navigation, route }) {
   );
 
   const onChange = (key, value) => {
-    setForm(prev => ({ ...prev, [key]: value }));
+    const nextValue = key === 'email' ? value.trimStart() : value;
+    setForm(prev => ({ ...prev, [key]: nextValue }));
   };
 
   const validate = (targetMode = mode) => {
     const nextErrors = {};
-    if (!form.email) nextErrors.email = t('auth.errors.required');
-    if (form.email && !validateEmail(form.email)) {
+    const emailValue = form.email.trim().replace(/\s+/g, '');
+    const usernameValue = form.username.trim();
+    const phoneValue = form.phone.trim();
+    if (!emailValue) nextErrors.email = t('auth.errors.required');
+    if (emailValue && !validateEmail(emailValue)) {
       nextErrors.email = t('auth.errors.email');
     }
     if (!form.password) nextErrors.password = t('auth.errors.required');
@@ -59,9 +64,9 @@ export default function AuthScreen({ navigation, route }) {
       nextErrors.password = t('auth.errors.password');
     }
     if (targetMode === 'register') {
-      if (!form.username) nextErrors.username = t('auth.errors.required');
-      if (!form.phone) nextErrors.phone = t('auth.errors.required');
-      if (form.phone && !validatePhone(form.phone)) {
+      if (!usernameValue) nextErrors.username = t('auth.errors.required');
+      if (!phoneValue) nextErrors.phone = t('auth.errors.required');
+      if (phoneValue && !validatePhone(phoneValue)) {
         nextErrors.phone = t('auth.errors.phone');
       }
     }
@@ -71,21 +76,31 @@ export default function AuthScreen({ navigation, route }) {
 
   const onSubmit = async (overrideMode = mode, destination = 'main') => {
     if (!validate(overrideMode)) return;
+    if (destination === 'admin' && adminCode.trim() !== '123456') {
+      setSubmitError(t('auth.adminCodeError'));
+      return;
+    }
     setSubmitError('');
     setSubmitting(true);
     try {
+      const emailValue = form.email.trim().replace(/\s+/g, '').toLowerCase();
+      const passwordValue =
+        overrideMode === 'login' ? form.password.trim() : form.password;
       if (overrideMode === 'login') {
-        await login({ email: form.email, password: form.password });
+        await login({
+          email: emailValue,
+          password: passwordValue,
+        });
         await addNotification({
           title: t('notifications.welcomeTitle'),
           message: t('notifications.welcomeMessage'),
         });
       } else {
         await register({
-          email: form.email,
-          password: form.password,
-          username: form.username,
-          phone_number: form.phone,
+          email: emailValue,
+          password: passwordValue,
+          username: form.username.trim(),
+          phone_number: form.phone.trim(),
         });
         await addNotification({
           title: t('notifications.welcomeTitle'),
@@ -99,8 +114,12 @@ export default function AuthScreen({ navigation, route }) {
       }
     } catch (error) {
       const response = error?.response || {};
+      const errorMessages = response?.errors
+        ? Object.values(response.errors).flat()
+        : [];
       setSubmitError(
-        response?.message ||
+        errorMessages[0] ||
+          response?.message ||
           response?.error ||
           error?.message ||
           'Request failed'
@@ -191,6 +210,7 @@ export default function AuthScreen({ navigation, route }) {
                   value={form.email}
                   onChangeText={value => onChange('email', value)}
                   autoCapitalize="none"
+                  autoCorrect={false}
                   keyboardType="email-address"
                   leadingIcon={<Icon name="email-outline" size={18} color={theme.text} />}
                 />
@@ -203,6 +223,8 @@ export default function AuthScreen({ navigation, route }) {
                   secureTextEntry
                   value={form.password}
                   onChangeText={value => onChange('password', value)}
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   leadingIcon={<Icon name="eye-outline" size={18} color={theme.text} />}
                   trailingIcon={<Icon name="emoticon-outline" size={18} color={theme.text} />}
                 />
@@ -231,21 +253,28 @@ export default function AuthScreen({ navigation, route }) {
               </View>
               <View style={styles.socialRow}>
                 <SocialButton
-                  label="Apple"
+                  label={t('auth.social.apple')}
                   icon={<Icon family="fa5" name="apple" size={16} color={theme.text} />}
                   onPress={() => Alert.alert(t('common.unavailable'))}
                 />
                 <SocialButton
-                  label="Google"
+                  label={t('auth.social.google')}
                   icon={<Icon family="fa5" name="google" size={16} color={theme.text} />}
                   onPress={() => Alert.alert(t('common.unavailable'))}
                 />
                 <SocialButton
-                  label="X"
+                  label={t('auth.social.twitter')}
                   icon={<Icon family="fa5" name="x-twitter" size={16} color={theme.text} />}
                   onPress={() => Alert.alert(t('common.unavailable'))}
                 />
               </View>
+              <InputField
+                label={t('auth.adminCode')}
+                placeholder={t('auth.adminCodePlaceholder')}
+                value={adminCode}
+                onChangeText={value => setAdminCode(value)}
+                keyboardType="numeric"
+              />
               <PrimaryButton
                 label={t('auth.adminLogin')}
                 variant="secondary"
@@ -357,6 +386,7 @@ const createStyles = (theme, isRTL, mode) =>
       flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'space-between',
       gap: 10,
+      flexWrap: 'wrap',
     },
     footerCard: {
       backgroundColor: theme.surface,

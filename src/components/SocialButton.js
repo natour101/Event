@@ -11,7 +11,9 @@ export default function SocialButton({ label, icon, onPress }) {
   return (
     <Pressable onPress={onPress} style={styles.container}>
       {icon}
-      <Text style={styles.label}>{label}</Text>
+      <Text style={styles.label} numberOfLines={1} ellipsizeMode="tail">
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -28,10 +30,13 @@ const createStyles = (theme, isRTL) =>
       backgroundColor: theme.surface,
       borderWidth: 1,
       borderColor: theme.border,
+      flex: 1,
+      minWidth: 90,
     },
     label: {
       color: theme.text,
       fontWeight: '600',
-      fontSize: 13,
+      fontSize: 12,
+      flexShrink: 1,
     },
   });

@@ -1,4 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
+import appConfig from '../../app.json';
 
 const DEFAULT_API_PORT = 8000;
 
@@ -14,9 +15,28 @@ const getDevServerHost = () => {
   return host;
 };
 
-const getBaseUrl = () => {
+const normalizeBaseUrl = value => {
+  if (!value || typeof value !== 'string') return null;
+  let trimmed = value.trim().replace(/\/+$/, '');
+  if (!trimmed) return null;
+  if (!/^https?:\/\//i.test(trimmed)) {
+    const isLocalHost = /^(localhost|127\.0\.0\.1|10\.0\.2\.2)/i.test(trimmed);
+    trimmed = `${isLocalHost ? 'http' : 'https'}://${trimmed}`;
+  }
+  return trimmed.match(/\/api$/) ? trimmed : `${trimmed}/api`;
+};
+
+const getConfigBaseUrl = () => {
   if (global?.API_BASE_URL) {
-    return global.API_BASE_URL;
+    return normalizeBaseUrl(global.API_BASE_URL);
+  }
+  return normalizeBaseUrl(appConfig?.apiBaseUrl);
+};
+
+const getBaseUrl = () => {
+  const configuredBaseUrl = getConfigBaseUrl();
+  if (configuredBaseUrl) {
+    return configuredBaseUrl;
   }
   const devHost = getDevServerHost();
   if (devHost) {
