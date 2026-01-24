@@ -40,6 +40,8 @@ export default {
     subtitle: 'اكتشف الفعاليات، أنشئها، وشارك فيها بسهولة',
     email: 'البريد الإلكتروني',
     emailPlaceholder: 'example@email.com',
+    loginIdentifier: 'البريد الإلكتروني أو اسم المستخدم',
+    loginIdentifierPlaceholder: 'أدخل البريد الإلكتروني أو اسم المستخدم',
     password: 'كلمة المرور',
     passwordPlaceholder: '••••••••',
     username: 'اسم المستخدم',
