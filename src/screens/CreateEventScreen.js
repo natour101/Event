@@ -12,11 +12,13 @@ import {
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useNavigation } from '@react-navigation/native';
 import CategoryPill from '../components/CategoryPill';
 import Icon from '../components/Icon';
 import InputField from '../components/InputField';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenHeader from '../components/ScreenHeader';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { categoryApi, eventsApi } from '../services/api';
@@ -32,7 +34,10 @@ const defaultForm = {
 export default function CreateEventScreen() {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
+  const { user, token } = useAuth();
+  const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const isAuthed = Boolean(user || token);
   const [form, setForm] = useState(defaultForm);
   const [imageAsset, setImageAsset] = useState(null);
   const [dateValue, setDateValue] = useState(null);
@@ -59,6 +64,20 @@ export default function CreateEventScreen() {
     fetchCategories();
   }, [fetchCategories]);
 
+  useEffect(() => {
+    if (!isAuthed) {
+      navigation.navigate('Profile');
+    }
+  }, [isAuthed, navigation]);
+
+  const handleAuthPress = action => {
+    if (!isAuthed) {
+      navigation.navigate('Profile');
+      return;
+    }
+    action?.();
+  };
+
   const onChange = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
@@ -71,59 +90,63 @@ export default function CreateEventScreen() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const onPickCover = async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      selectionLimit: 1,
+  const onPickCover = () => {
+    handleAuthPress(async () => {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        selectionLimit: 1,
+      });
+      const asset = result?.assets?.[0];
+      if (asset?.uri) {
+        setImageAsset(asset);
+      }
     });
-    const asset = result?.assets?.[0];
-    if (asset?.uri) {
-      setImageAsset(asset);
-    }
   };
 
-  const onSubmit = async () => {
-    if (!validate()) return;
-    setSubmitting(true);
-    setSubmitError('');
-    try {
-      const startAt = dateValue
-        ? new Date(
-            dateValue.getFullYear(),
-            dateValue.getMonth(),
-            dateValue.getDate(),
-            timeValue ? timeValue.getHours() : 0,
-            timeValue ? timeValue.getMinutes() : 0
-          ).toISOString()
-        : null;
-      const priceValue = ticketType === 'free' ? 0 : Number(form.price || 0);
-      const payload = new FormData();
-      payload.append('title', form.title);
-      if (form.subtitle) payload.append('subtitle', form.subtitle);
-      if (form.description) payload.append('description', form.description);
-      if (form.location) payload.append('location', form.location);
-      if (startAt) payload.append('start_at', startAt);
-      payload.append('price', String(priceValue));
-      if (selectedCategory) payload.append('category_id', String(selectedCategory));
-      if (imageAsset?.uri) {
-        payload.append('image', {
-          uri: imageAsset.uri,
-          type: imageAsset.type || 'image/jpeg',
-          name: imageAsset.fileName || `event-${Date.now()}.jpg`,
-        });
+  const onSubmit = () => {
+    handleAuthPress(async () => {
+      if (!validate()) return;
+      setSubmitting(true);
+      setSubmitError('');
+      try {
+        const startAt = dateValue
+          ? new Date(
+              dateValue.getFullYear(),
+              dateValue.getMonth(),
+              dateValue.getDate(),
+              timeValue ? timeValue.getHours() : 0,
+              timeValue ? timeValue.getMinutes() : 0
+            ).toISOString()
+          : null;
+        const priceValue = ticketType === 'free' ? 0 : Number(form.price || 0);
+        const payload = new FormData();
+        payload.append('title', form.title);
+        if (form.subtitle) payload.append('subtitle', form.subtitle);
+        if (form.description) payload.append('description', form.description);
+        if (form.location) payload.append('location', form.location);
+        if (startAt) payload.append('start_at', startAt);
+        payload.append('price', String(priceValue));
+        if (selectedCategory) payload.append('category_id', String(selectedCategory));
+        if (imageAsset?.uri) {
+          payload.append('image', {
+            uri: imageAsset.uri,
+            type: imageAsset.type || 'image/jpeg',
+            name: imageAsset.fileName || `event-${Date.now()}.jpg`,
+          });
+        }
+        await eventsApi.create(payload);
+        setForm(defaultForm);
+        setImageAsset(null);
+        setDateValue(null);
+        setTimeValue(null);
+        setSelectedCategory(null);
+        setTicketType('paid');
+      } catch (error) {
+        setSubmitError(error?.response?.message || error?.message || t('common.error'));
+      } finally {
+        setSubmitting(false);
       }
-      await eventsApi.create(payload);
-      setForm(defaultForm);
-      setImageAsset(null);
-      setDateValue(null);
-      setTimeValue(null);
-      setSelectedCategory(null);
-      setTicketType('paid');
-    } catch (error) {
-      setSubmitError(error?.response?.message || error?.message || t('common.error'));
-    } finally {
-      setSubmitting(false);
-    }
+    });
   };
 
   const formatDate = value => {
@@ -209,7 +232,7 @@ export default function CreateEventScreen() {
               key={category.id}
               label={category.name}
               active={selectedCategory === category.id}
-              onPress={() => setSelectedCategory(category.id)}
+              onPress={() => handleAuthPress(() => setSelectedCategory(category.id))}
             />
           ))}
         </View>
@@ -231,7 +254,7 @@ export default function CreateEventScreen() {
             containerStyle={styles.flex}
             editable={false}
             showSoftInputOnFocus={false}
-            onPressIn={() => openPicker('date')}
+            onPressIn={() => handleAuthPress(() => openPicker('date'))}
             trailingIcon={<Icon name="calendar" size={18} color={theme.muted} />}
           />
           <InputField
@@ -241,7 +264,7 @@ export default function CreateEventScreen() {
             containerStyle={styles.flex}
             editable={false}
             showSoftInputOnFocus={false}
-            onPressIn={() => openPicker('time')}
+            onPressIn={() => handleAuthPress(() => openPicker('time'))}
             trailingIcon={<Icon name="clock-outline" size={18} color={theme.muted} />}
           />
         </View>
@@ -259,14 +282,16 @@ export default function CreateEventScreen() {
           <CategoryPill
             label={t('create.paid')}
             active={ticketType === 'paid'}
-            onPress={() => setTicketType('paid')}
+            onPress={() => handleAuthPress(() => setTicketType('paid'))}
           />
           <CategoryPill
             label={t('create.free')}
             active={ticketType === 'free'}
             onPress={() => {
-              setTicketType('free');
-              onChange('price', '0');
+              handleAuthPress(() => {
+                setTicketType('free');
+                onChange('price', '0');
+              });
             }}
           />
         </View>
