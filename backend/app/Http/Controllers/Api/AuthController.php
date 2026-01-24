@@ -36,7 +36,7 @@ class AuthController extends Controller
 
             return ApiResponse::success('Registered successfully', [
                 'token' => $token,
-                'user' => new UserResource($user),
+                'user' => (new UserResource($user))->resolve(),
             ], 201);
         } catch (\Throwable $error) {
             Log::error('Register error', ['error' => $error->getMessage()]);
@@ -72,7 +72,7 @@ class AuthController extends Controller
 
     return ApiResponse::success('Login successful', [
         'token' => $token,
-        'user'  => new UserResource($user),
+        'user'  => (new UserResource($user))->resolve(),
     ]);
 }
 
@@ -87,7 +87,7 @@ class AuthController extends Controller
     public function me()
     {
         return ApiResponse::success('User profile', [
-            'user' => new UserResource(request()->user()),
+            'user' => (new UserResource(request()->user()))->resolve(),
         ]);
     }
 }

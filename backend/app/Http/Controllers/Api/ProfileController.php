@@ -17,7 +17,7 @@ class ProfileController extends Controller
     public function show(Request $request)
     {
         return ApiResponse::success('Profile data', [
-            'user' => new UserResource($request->user()),
+            'user' => (new UserResource($request->user()))->resolve(),
         ]);
     }
 
@@ -34,7 +34,7 @@ class ProfileController extends Controller
         $user->update($payload);
 
         return ApiResponse::success('Profile updated', [
-            'user' => new UserResource($user),
+            'user' => (new UserResource($user))->resolve(),
         ]);
     }
 
@@ -70,7 +70,7 @@ class ProfileController extends Controller
         ]);
 
         return ApiResponse::success('Avatar uploaded', [
-            'user' => new UserResource($user),
+            'user' => (new UserResource($user))->resolve(),
         ]);
     }
 }
