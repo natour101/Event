@@ -20,6 +20,7 @@ export default {
     empty: 'No data available',
     confirm: 'Confirm',
     cancel: 'Cancel',
+    unavailable: 'Currently unavailable',
   },
   tabs: {
     home: 'Home',
@@ -49,6 +50,7 @@ export default {
     orContinue: 'Or continue with',
     terms: 'By continuing, you agree to the Terms of Service and Privacy Policy',
     createAccount: 'Create a new account',
+    adminLogin: 'Admin app login',
     errors: {
       required: 'This field is required',
       email: 'Enter a valid email address',
@@ -167,5 +169,12 @@ export default {
     business: 'Business',
     tech: 'Tech',
     fun: 'Entertainment',
+  },
+  admin: {
+    title: 'Event administration',
+    subtitle: 'Events list with registration counts',
+    registrationsCount: 'Registrations: {{count}}',
+    viewDetails: 'View registrations',
+    hideDetails: 'Hide registrations',
   },
 };

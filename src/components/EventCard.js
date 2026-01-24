@@ -2,16 +2,19 @@ import React, { useMemo } from 'react';
 import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
+import { resolveMediaUrl } from '../utils/media';
 
 export default function EventCard({ event, style, actionLabel, onPress }) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
 
+  const imageUrl = resolveMediaUrl(event?.image);
+
   return (
     <Pressable style={[styles.card, style]} onPress={onPress} disabled={!onPress}>
       <ImageBackground
-        source={{ uri: event.image }}
+        source={{ uri: imageUrl }}
         style={styles.image}
         imageStyle={styles.imageRadius}
       >
