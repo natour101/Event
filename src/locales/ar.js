@@ -21,6 +21,8 @@ export default {
     confirm: 'تأكيد',
     cancel: 'إلغاء',
     unavailable: 'غير متاح حالياً',
+    rating: 'التقييم',
+    views: 'مشاهدة',
   },
   tabs: {
     home: 'الرئيسية',
@@ -76,6 +78,12 @@ export default {
     nearby: 'أحداث قريبة منك',
     newest: 'أحدث الفعاليات',
     bookNow: 'احجز الآن',
+    stats: {
+      title: 'أرقام اليوم',
+      events: 'الفعاليات',
+      tournaments: 'البطولات',
+      users: 'المستخدمون',
+    },
   },
   explore: {
     title: 'استكشف الفعاليات',
