@@ -8,13 +8,23 @@ use App\Models\Event;
 use App\Models\Tournament;
 use App\Models\User;
 use App\Services\ApiResponse;
+use Illuminate\Support\Facades\Schema;
 
 class HomeController extends Controller
 {
     public function index()
     {
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+
         $featured = Event::query()
             ->with(['categoryRelation'])
+            ->when($withCounts, fn ($query) => $query->withCount($withCounts))
             ->where('is_featured', true)
             ->latest()
             ->take(3)
@@ -22,6 +32,7 @@ class HomeController extends Controller
 
         $nearby = Event::query()
             ->with(['categoryRelation'])
+            ->when($withCounts, fn ($query) => $query->withCount($withCounts))
             ->whereNotNull('distance_km')
             ->orderBy('distance_km')
             ->take(5)
@@ -29,6 +40,7 @@ class HomeController extends Controller
 
         $newest = Event::query()
             ->with(['categoryRelation'])
+            ->when($withCounts, fn ($query) => $query->withCount($withCounts))
             ->latest()
             ->take(6)
             ->get();

@@ -27,6 +27,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/events', [EventController::class, 'store']);
     Route::put('/events/{event}', [EventController::class, 'update']);
     Route::delete('/events/{event}', [EventController::class, 'destroy']);
+    Route::post('/events/{event}/like', [EventController::class, 'like']);
+    Route::delete('/events/{event}/like', [EventController::class, 'unlike']);
+    Route::post('/events/{event}/book', [EventController::class, 'book']);
 
     Route::post('/tournaments', [TournamentController::class, 'store']);
     Route::put('/tournaments/{tournament}', [TournamentController::class, 'update']);

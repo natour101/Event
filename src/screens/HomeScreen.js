@@ -26,7 +26,7 @@ export default function HomeScreen({ navigation }) {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { unreadCount, markAllRead } = useNotifications();
+  const { unreadCount } = useNotifications();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
   const [homeData, setHomeData] = useState({
     featured: [],
@@ -68,9 +68,14 @@ export default function HomeScreen({ navigation }) {
       refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchHome} />}
     >
       <ScreenHeader
-        title={user?.name || t('home.userName')}
-        subtitle={t('home.greeting')}
-        rightElement={<NotificationBell count={unreadCount} onPress={markAllRead} />}
+        title={user?.name || t('home.greeting')}
+        subtitle={user?.name ? t('home.greeting') : t('home.welcome')}
+        rightElement={
+          <NotificationBell
+            count={unreadCount}
+            onPress={() => navigation.navigate('Notifications')}
+          />
+        }
       />
       <Pressable
         style={styles.searchRow}

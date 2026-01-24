@@ -14,9 +14,9 @@ import { useTheme } from '../context/ThemeContext';
 
 export default function WelcomeScreen({ navigation }) {
   const { t, toggleLanguage, isRTL, language } = useLanguage();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
 
-  const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const styles = useMemo(() => createStyles(theme, isRTL, mode), [theme, isRTL, mode]);
 
   return (
     <ImageBackground
@@ -29,17 +29,19 @@ export default function WelcomeScreen({ navigation }) {
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.centerContent}>
-            <View style={styles.logo}>
-              <Icon name="ticket-confirmation" size={30} color={theme.text} />
+            <View style={styles.card}>
+              <View style={styles.logo}>
+                <Icon name="ticket-confirmation" size={30} color={theme.text} />
+              </View>
+              <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
+                {t('welcome.title')}
+              </Text>
+              <Text style={styles.subtitle} numberOfLines={3} ellipsizeMode="tail">
+                {t('welcome.subtitle')}
+              </Text>
             </View>
-            <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
-              {t('welcome.title')}
-            </Text>
-            <Text style={styles.subtitle} numberOfLines={3} ellipsizeMode="tail">
-              {t('welcome.subtitle')}
-            </Text>
           </View>
-          <View style={styles.actions}>
+          <View style={styles.actionsCard}>
             <PrimaryButton
               label={t('common.register')}
               onPress={() => navigation.navigate('Auth', { mode: 'register' })}
@@ -63,14 +65,15 @@ export default function WelcomeScreen({ navigation }) {
   );
 }
 
-const createStyles = (theme, isRTL) =>
+const createStyles = (theme, isRTL, mode) =>
   StyleSheet.create({
     background: {
       flex: 1,
     },
     overlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(20, 12, 8, 0.65)',
+      backgroundColor:
+        mode === 'softDark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(20, 12, 8, 0.65)',
     },
     container: {
       flex: 1,
@@ -86,6 +89,17 @@ const createStyles = (theme, isRTL) =>
     centerContent: {
       marginTop: 90,
       alignItems: 'center',
+    },
+    card: {
+      width: '100%',
+      backgroundColor: theme.surface,
+      borderRadius: 22,
+      paddingVertical: 28,
+      paddingHorizontal: 20,
+      alignItems: 'center',
+      gap: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
     },
     logo: {
       width: 80,
@@ -114,8 +128,13 @@ const createStyles = (theme, isRTL) =>
       lineHeight: 22,
       flexShrink: 1,
     },
-    actions: {
+    actionsCard: {
       gap: 14,
+      backgroundColor: theme.surface,
+      borderRadius: 22,
+      padding: 18,
+      borderWidth: 1,
+      borderColor: theme.border,
     },
     languageRow: {
       flexDirection: 'row',

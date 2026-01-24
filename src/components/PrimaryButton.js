@@ -10,6 +10,7 @@ export default function PrimaryButton({
   variant = 'primary',
   icon,
   iconComponent,
+  disabled = false,
 }) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
@@ -19,7 +20,13 @@ export default function PrimaryButton({
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.container, variantStyle.container, style]}
+      disabled={disabled}
+      style={[
+        styles.container,
+        variantStyle.container,
+        disabled ? styles.disabled : null,
+        style,
+      ]}
     >
       {iconComponent || (icon ? <Text style={styles.icon}>{icon}</Text> : null)}
       <Text style={[styles.label, variantStyle.label]}>{label}</Text>
@@ -76,5 +83,8 @@ const createStyles = (theme, isRTL) =>
           color: theme.text,
         },
       },
+    },
+    disabled: {
+      opacity: 0.6,
     },
   });

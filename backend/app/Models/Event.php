@@ -40,6 +40,16 @@ class Event extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function likes()
+    {
+        return $this->hasMany(EventLike::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(EventBooking::class);
+    }
+
     public function categoryRelation()
     {
         return $this->belongsTo(Category::class, 'category_id');

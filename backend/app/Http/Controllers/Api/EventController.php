@@ -9,12 +9,26 @@ use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Services\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class EventController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Event::query()->with(['categoryRelation']);
+        $query = Event::query()
+            ->with(['categoryRelation']);
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $query->withCount($withCounts);
+        }
 
         if ($search = $request->get('search')) {
             $query->where(function ($builder) use ($search) {
@@ -53,7 +67,21 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        $event->load(['organizer', 'categoryRelation']);
+        $relations = ['organizer', 'categoryRelation'];
+        if (Schema::hasTable('event_bookings')) {
+            $relations[] = 'bookings.user';
+        }
+        $event->load($relations);
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $event->loadCount($withCounts);
+        }
         $event->increment('views');
 
         return ApiResponse::success('Event details', [
@@ -63,12 +91,24 @@ class EventController extends Controller
 
     public function store(StoreEventRequest $request)
     {
-        $event = Event::create(array_merge(
-            $request->validated(),
-            ['user_id' => $request->user()?->id]
-        ));
+        $payload = $request->validated();
+        if ($request->hasFile('image')) {
+            $payload['image_url'] = $request->file('image')->store('events', 'public');
+        }
+
+        $event = Event::create(array_merge($payload, ['user_id' => $request->user()?->id]));
 
         $event->load(['categoryRelation']);
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $event->loadCount($withCounts);
+        }
 
         return ApiResponse::success('Event created', [
             'event' => new EventResource($event),
@@ -77,8 +117,26 @@ class EventController extends Controller
 
     public function update(UpdateEventRequest $request, Event $event)
     {
-        $event->update($request->validated());
+        $payload = $request->validated();
+        if ($request->hasFile('image')) {
+            if ($event->image_url && !Str::startsWith($event->image_url, ['http://', 'https://'])) {
+                Storage::disk('public')->delete($event->image_url);
+            }
+            $payload['image_url'] = $request->file('image')->store('events', 'public');
+        }
+
+        $event->update($payload);
         $event->load(['categoryRelation']);
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $event->loadCount($withCounts);
+        }
 
         return ApiResponse::success('Event updated', [
             'event' => new EventResource($event),
@@ -90,5 +148,83 @@ class EventController extends Controller
         $event->delete();
 
         return ApiResponse::success('Event deleted');
+    }
+
+    public function like(Request $request, Event $event)
+    {
+        $user = $request->user();
+        $event->likes()->firstOrCreate([
+            'user_id' => $user->id,
+        ]);
+
+        if (Schema::hasTable('event_bookings')) {
+            $event->load(['bookings.user']);
+        }
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $event->loadCount($withCounts);
+        }
+
+        return ApiResponse::success('Event liked', [
+            'event' => new EventResource($event),
+        ]);
+    }
+
+    public function unlike(Request $request, Event $event)
+    {
+        $user = $request->user();
+        $event->likes()->where('user_id', $user->id)->delete();
+
+        if (Schema::hasTable('event_bookings')) {
+            $event->load(['bookings.user']);
+        }
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $event->loadCount($withCounts);
+        }
+
+        return ApiResponse::success('Event unliked', [
+            'event' => new EventResource($event),
+        ]);
+    }
+
+    public function book(Request $request, Event $event)
+    {
+        $user = $request->user();
+        $event->bookings()->firstOrCreate([
+            'user_id' => $user->id,
+        ]);
+
+        $event->attendees_count = $event->bookings()->count();
+        $event->save();
+        if (Schema::hasTable('event_bookings')) {
+            $event->load(['bookings.user']);
+        }
+        $withCounts = [];
+        if (Schema::hasTable('event_likes')) {
+            $withCounts[] = 'likes';
+        }
+        if (Schema::hasTable('event_bookings')) {
+            $withCounts[] = 'bookings';
+        }
+        if ($withCounts) {
+            $event->loadCount($withCounts);
+        }
+
+        return ApiResponse::success('Event booked', [
+            'event' => new EventResource($event),
+        ]);
     }
 }

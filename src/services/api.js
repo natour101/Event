@@ -106,6 +106,9 @@ export const eventsApi = {
   create: payload => api.post('/events', payload),
   update: (id, payload) => api.put(`/events/${id}`, payload),
   remove: id => api.delete(`/events/${id}`),
+  like: id => api.post(`/events/${id}/like`),
+  unlike: id => api.delete(`/events/${id}/like`),
+  book: id => api.post(`/events/${id}/book`),
 };
 
 export const tournamentsApi = {

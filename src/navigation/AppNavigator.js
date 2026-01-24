@@ -8,6 +8,7 @@ import CreateEventScreen from '../screens/CreateEventScreen';
 import EventDetailsScreen from '../screens/EventDetailsScreen';
 import ExploreScreen from '../screens/ExploreScreen';
 import HomeScreen from '../screens/HomeScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SplashScreen from '../screens/SplashScreen';
 import TournamentsScreen from '../screens/TournamentsScreen';
@@ -104,6 +105,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Auth" component={AuthScreen} />
       <Stack.Screen name="Main" component={MainTabs} />
       <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }

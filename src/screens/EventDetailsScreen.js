@@ -4,6 +4,7 @@ import {
   Linking,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -13,6 +14,7 @@ import PrimaryButton from '../components/PrimaryButton';
 import ScreenHeader from '../components/ScreenHeader';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
+import { API_CONFIG } from '../constants/api';
 import { eventsApi } from '../services/api';
 
 export default function EventDetailsScreen({ route }) {
@@ -21,6 +23,9 @@ export default function EventDetailsScreen({ route }) {
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
   const [event, setEvent] = useState(null);
   const [error, setError] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [isLiking, setIsLiking] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
 
   const eventId = route?.params?.eventId;
 
@@ -40,9 +45,51 @@ export default function EventDetailsScreen({ route }) {
   }, [fetchEvent]);
 
   const mapUrl = event?.map_url || event?.map_link || event?.map;
+  const shareUrl = `${API_CONFIG.BASE_URL.replace(/\/api\/?$/, '')}/events/${eventId}`;
   const priceLabel = event?.price
     ? `${event.price} ${t('common.currency')}`
     : t('common.free');
+
+  const onShare = async () => {
+    setActionError('');
+    try {
+      await Share.share({
+        message: shareUrl,
+      });
+    } catch (shareError) {
+      setActionError(shareError?.message || t('common.error'));
+    }
+  };
+
+  const onToggleLike = async () => {
+    if (!eventId) return;
+    setActionError('');
+    setIsLiking(true);
+    try {
+      const response = event?.liked_by_me
+        ? await eventsApi.unlike(eventId)
+        : await eventsApi.like(eventId);
+      setEvent(response.data?.event || event);
+    } catch (likeError) {
+      setActionError(likeError?.message || t('common.error'));
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
+  const onBook = async () => {
+    if (!eventId) return;
+    setActionError('');
+    setIsBooking(true);
+    try {
+      const response = await eventsApi.book(eventId);
+      setEvent(response.data?.event || event);
+    } catch (bookError) {
+      setActionError(bookError?.message || t('common.error'));
+    } finally {
+      setIsBooking(false);
+    }
+  };
 
   if (!eventId) {
     return (
@@ -61,12 +108,16 @@ export default function EventDetailsScreen({ route }) {
           imageStyle={styles.heroImage}
         >
           <View style={styles.heroActions}>
-            <View style={styles.iconButton}>
+            <Pressable style={styles.iconButton} onPress={onShare}>
               <Icon name="share-variant" size={16} color={theme.text} />
-            </View>
-            <View style={styles.iconButton}>
-              <Icon name="heart-outline" size={16} color={theme.text} />
-            </View>
+            </Pressable>
+            <Pressable style={styles.iconButton} onPress={onToggleLike} disabled={isLiking}>
+              <Icon
+                name={event?.liked_by_me ? 'heart' : 'heart-outline'}
+                size={16}
+                color={event?.liked_by_me ? theme.accent : theme.text}
+              />
+            </Pressable>
           </View>
         </ImageBackground>
       ) : null}
@@ -78,10 +129,17 @@ export default function EventDetailsScreen({ route }) {
       />
       <View style={styles.metaRow}>
         <Text style={styles.metaText}>
-          {event?.attendees ? `${event.attendees} ${t('eventDetails.attendees')}` : null}
+          {event?.attendees
+            ? `${event.attendees} ${t('eventDetails.attendees')}`
+            : null}
         </Text>
         <Text style={styles.metaText}>
           {event?.rating ? `⭐ ${event.rating}` : null}
+        </Text>
+        <Text style={styles.likeCount}>
+          {typeof event?.likes_count === 'number'
+            ? `${event.likes_count} ${t('eventDetails.likes')}`
+            : null}
         </Text>
       </View>
 
@@ -127,10 +185,28 @@ export default function EventDetailsScreen({ route }) {
       </View>
 
       <PrimaryButton
-        label={t('eventDetails.registerNow')}
+        label={
+          event?.booked_by_me ? t('eventDetails.booked') : t('eventDetails.registerNow')
+        }
         iconComponent={<Icon name="arrow-left" size={18} color={theme.text} />}
+        onPress={onBook}
+        style={isBooking || event?.booked_by_me ? styles.disabledButton : null}
+        disabled={isBooking || event?.booked_by_me}
       />
+      {actionError ? <Text style={styles.errorText}>{actionError}</Text> : null}
       <Text style={styles.priceText}>{priceLabel}</Text>
+      {event?.booked_users?.length ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{t('eventDetails.bookedUsers')}</Text>
+          <View style={styles.userChips}>
+            {event.booked_users.map(name => (
+              <View key={name} style={styles.userChip}>
+                <Text style={styles.userChipText}>{name}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
     </ScrollView>
   );
 }
@@ -170,10 +246,16 @@ const createStyles = (theme, isRTL) =>
     metaRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       gap: 12,
+      flexWrap: 'wrap',
     },
     metaText: {
       color: theme.muted,
       fontSize: 12,
+    },
+    likeCount: {
+      color: theme.accent,
+      fontSize: 12,
+      fontWeight: '700',
     },
     hostRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
@@ -256,6 +338,27 @@ const createStyles = (theme, isRTL) =>
       color: theme.warning,
       fontSize: 12,
       textAlign: isRTL ? 'right' : 'left',
+    },
+    disabledButton: {
+      opacity: 0.7,
+    },
+    userChips: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    userChip: {
+      backgroundColor: theme.surfaceLight,
+      borderRadius: 12,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    userChipText: {
+      color: theme.text,
+      fontSize: 12,
+      fontWeight: '600',
     },
     emptyContainer: {
       flex: 1,
