@@ -35,6 +35,7 @@ export default function AuthScreen({ navigation, route }) {
     username: '',
     phone: '',
   });
+  const [adminCode, setAdminCode] = useState('');
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -50,8 +51,11 @@ export default function AuthScreen({ navigation, route }) {
 
   const validate = (targetMode = mode) => {
     const nextErrors = {};
-    if (!form.email) nextErrors.email = t('auth.errors.required');
-    if (form.email && !validateEmail(form.email)) {
+    const emailValue = form.email.trim();
+    const usernameValue = form.username.trim();
+    const phoneValue = form.phone.trim();
+    if (!emailValue) nextErrors.email = t('auth.errors.required');
+    if (emailValue && !validateEmail(emailValue)) {
       nextErrors.email = t('auth.errors.email');
     }
     if (!form.password) nextErrors.password = t('auth.errors.required');
@@ -59,9 +63,9 @@ export default function AuthScreen({ navigation, route }) {
       nextErrors.password = t('auth.errors.password');
     }
     if (targetMode === 'register') {
-      if (!form.username) nextErrors.username = t('auth.errors.required');
-      if (!form.phone) nextErrors.phone = t('auth.errors.required');
-      if (form.phone && !validatePhone(form.phone)) {
+      if (!usernameValue) nextErrors.username = t('auth.errors.required');
+      if (!phoneValue) nextErrors.phone = t('auth.errors.required');
+      if (phoneValue && !validatePhone(phoneValue)) {
         nextErrors.phone = t('auth.errors.phone');
       }
     }
@@ -71,21 +75,26 @@ export default function AuthScreen({ navigation, route }) {
 
   const onSubmit = async (overrideMode = mode, destination = 'main') => {
     if (!validate(overrideMode)) return;
+    if (destination === 'admin' && adminCode.trim() !== '123456') {
+      setSubmitError(t('auth.adminCodeError'));
+      return;
+    }
     setSubmitError('');
     setSubmitting(true);
     try {
+      const emailValue = form.email.trim();
       if (overrideMode === 'login') {
-        await login({ email: form.email, password: form.password });
+        await login({ email: emailValue, password: form.password });
         await addNotification({
           title: t('notifications.welcomeTitle'),
           message: t('notifications.welcomeMessage'),
         });
       } else {
         await register({
-          email: form.email,
+          email: emailValue,
           password: form.password,
-          username: form.username,
-          phone_number: form.phone,
+          username: form.username.trim(),
+          phone_number: form.phone.trim(),
         });
         await addNotification({
           title: t('notifications.welcomeTitle'),
@@ -241,11 +250,18 @@ export default function AuthScreen({ navigation, route }) {
                   onPress={() => Alert.alert(t('common.unavailable'))}
                 />
                 <SocialButton
-                  label="X"
+                  label="Twitter"
                   icon={<Icon family="fa5" name="x-twitter" size={16} color={theme.text} />}
                   onPress={() => Alert.alert(t('common.unavailable'))}
                 />
               </View>
+              <InputField
+                label={t('auth.adminCode')}
+                placeholder={t('auth.adminCodePlaceholder')}
+                value={adminCode}
+                onChangeText={value => setAdminCode(value)}
+                keyboardType="numeric"
+              />
               <PrimaryButton
                 label={t('auth.adminLogin')}
                 variant="secondary"

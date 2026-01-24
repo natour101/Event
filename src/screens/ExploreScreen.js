@@ -5,6 +5,7 @@ import EventCard from '../components/EventCard';
 import Icon from '../components/Icon';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenHeader from '../components/ScreenHeader';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { categoryApi, eventsApi } from '../services/api';
@@ -12,9 +13,11 @@ import { categoryApi, eventsApi } from '../services/api';
 export default function ExploreScreen({ navigation, route }) {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
+  const { user, token } = useAuth();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
   const searchInputRef = useRef(null);
   const scrollRef = useRef(null);
+  const isAuthed = Boolean(user || token);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [search, setSearch] = useState('');
@@ -80,6 +83,16 @@ export default function ExploreScreen({ navigation, route }) {
     return undefined;
   }, [route?.params?.focusFilter]);
 
+  const handleAuthPress = action => {
+    if (!isAuthed) {
+      navigation.navigate('Profile');
+      searchInputRef.current?.blur?.();
+      return false;
+    }
+    action?.();
+    return true;
+  };
+
   return (
     <ScrollView
       ref={scrollRef}
@@ -96,7 +109,12 @@ export default function ExploreScreen({ navigation, route }) {
           placeholderTextColor={theme.muted}
           value={search}
           onChangeText={value => setSearch(value)}
-          onSubmitEditing={() => fetchEvents(1, true)}
+          onSubmitEditing={() =>
+            handleAuthPress(() => {
+              fetchEvents(1, true);
+            })
+          }
+          onFocus={() => handleAuthPress()}
         />
         <View style={styles.filterIcon}>
           <Icon name="tune-variant" size={18} color={theme.text} />
@@ -107,14 +125,14 @@ export default function ExploreScreen({ navigation, route }) {
         <CategoryPill
           label={t('categories.all')}
           active={!selectedCategory}
-          onPress={() => setSelectedCategory(null)}
+          onPress={() => handleAuthPress(() => setSelectedCategory(null))}
         />
         {categories.map(category => (
           <CategoryPill
             key={category.id}
             label={category.name}
             active={selectedCategory === category.id}
-            onPress={() => setSelectedCategory(category.id)}
+            onPress={() => handleAuthPress(() => setSelectedCategory(category.id))}
           />
         ))}
       </View>
@@ -133,7 +151,9 @@ export default function ExploreScreen({ navigation, route }) {
               date: event.date_label,
             }}
             actionLabel={event.tag}
-            onPress={() => navigation.navigate('EventDetails', { eventId: event.id })}
+            onPress={() =>
+              handleAuthPress(() => navigation.navigate('EventDetails', { eventId: event.id }))
+            }
           />
         ))}
       </View>
@@ -141,7 +161,7 @@ export default function ExploreScreen({ navigation, route }) {
         <PrimaryButton
           label={loading ? t('common.loading') : t('common.viewAll')}
           variant="secondary"
-          onPress={() => fetchEvents(page + 1)}
+          onPress={() => handleAuthPress(() => fetchEvents(page + 1))}
           style={styles.loadMoreButton}
         />
       ) : null}

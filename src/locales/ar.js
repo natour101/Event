@@ -50,7 +50,10 @@ export default {
     orContinue: 'أو استمر باستخدام',
     terms: 'بمتابعتك، أنت توافق على شروط الخدمة وسياسة الخصوصية',
     createAccount: 'إنشاء حساب جديد',
-    adminLogin: 'دخول إدارة التطبيق',
+    adminLogin: 'الكبسة لمعرفة عدد الحجوزات',
+    adminCode: 'كود الإدارة',
+    adminCodePlaceholder: 'أدخل كود الإدارة',
+    adminCodeError: 'يرجى إدخال كود الإدارة الصحيح',
     errors: {
       required: 'هذا الحقل مطلوب',
       email: 'أدخل بريدًا إلكترونيًا صحيحًا',
@@ -150,8 +153,8 @@ export default {
     updated: 'تم تحديث البيانات بنجاح',
     passwordUpdated: 'تم تحديث كلمة المرور',
     avatarUpdated: 'تم تحديث صورة البروفايل',
-    guestTitle: 'سجّل الدخول لإدارة حسابك',
-    guestSubtitle: 'سجّل الدخول لتحديث بياناتك ورفع صورة وإدارة الإعدادات.',
+    guestTitle: 'سجّل الدخول أولاً',
+    guestSubtitle: 'لاستخدام كل المزايا يجب تسجيل الدخول مثل التطبيقات الكبيرة.',
   },
   notifications: {
     title: 'الإشعارات',

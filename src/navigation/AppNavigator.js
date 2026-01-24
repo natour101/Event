@@ -14,6 +14,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import SplashScreen from '../screens/SplashScreen';
 import TournamentsScreen from '../screens/TournamentsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -23,6 +24,8 @@ const Tab = createBottomTabNavigator();
 function MainTabs() {
   const { theme } = useTheme();
   const { t, isRTL } = useLanguage();
+  const { user, token } = useAuth();
+  const isAuthed = Boolean(user || token);
 
   const tabs = useMemo(() => {
     const baseTabs = [
@@ -84,6 +87,14 @@ function MainTabs() {
           key={tab.name}
           name={tab.name}
           component={tab.component}
+          listeners={({ navigation }) => ({
+            tabPress: event => {
+              if (!isAuthed && tab.name !== 'Profile') {
+                event.preventDefault();
+                navigation.navigate('Profile');
+              }
+            },
+          })}
           options={{
             tabBarLabel: tab.label,
             tabBarIcon: ({ color }) => (
