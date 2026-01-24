@@ -202,6 +202,9 @@ class EventController extends Controller
 
     public function book(Request $request, Event $event)
     {
+        if (!Schema::hasTable('event_bookings')) {
+            return ApiResponse::error('Event bookings table missing', [], 500);
+        }
         $user = $request->user();
         $event->bookings()->firstOrCreate([
             'user_id' => $user->id,
@@ -209,9 +212,7 @@ class EventController extends Controller
 
         $event->attendees_count = $event->bookings()->count();
         $event->save();
-        if (Schema::hasTable('event_bookings')) {
-            $event->load(['bookings.user']);
-        }
+        $event->load(['bookings.user']);
         $withCounts = [];
         if (Schema::hasTable('event_likes')) {
             $withCounts[] = 'likes';

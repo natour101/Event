@@ -16,6 +16,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { API_CONFIG } from '../constants/api';
 import { eventsApi } from '../services/api';
+import { resolveMediaUrl } from '../utils/media';
 
 export default function EventDetailsScreen({ route }) {
   const { t, isRTL } = useLanguage();
@@ -85,7 +86,12 @@ export default function EventDetailsScreen({ route }) {
       const response = await eventsApi.book(eventId);
       setEvent(response.data?.event || event);
     } catch (bookError) {
-      setActionError(bookError?.message || t('common.error'));
+      const message = bookError?.response?.message || bookError?.message || '';
+      setActionError(
+        message.includes('Event bookings table missing')
+          ? t('common.unavailable')
+          : message || t('common.error')
+      );
     } finally {
       setIsBooking(false);
     }
@@ -103,7 +109,7 @@ export default function EventDetailsScreen({ route }) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {event?.image ? (
         <ImageBackground
-          source={{ uri: event.image }}
+          source={{ uri: resolveMediaUrl(event.image) }}
           style={styles.hero}
           imageStyle={styles.heroImage}
         >

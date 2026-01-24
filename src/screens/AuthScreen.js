@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
+  Alert,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -47,7 +48,7 @@ export default function AuthScreen({ navigation, route }) {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-  const validate = () => {
+  const validate = (targetMode = mode) => {
     const nextErrors = {};
     if (!form.email) nextErrors.email = t('auth.errors.required');
     if (form.email && !validateEmail(form.email)) {
@@ -57,7 +58,7 @@ export default function AuthScreen({ navigation, route }) {
     if (form.password && form.password.length < 6) {
       nextErrors.password = t('auth.errors.password');
     }
-    if (mode === 'register') {
+    if (targetMode === 'register') {
       if (!form.username) nextErrors.username = t('auth.errors.required');
       if (!form.phone) nextErrors.phone = t('auth.errors.required');
       if (form.phone && !validatePhone(form.phone)) {
@@ -68,12 +69,12 @@ export default function AuthScreen({ navigation, route }) {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const onSubmit = async () => {
-    if (!validate()) return;
+  const onSubmit = async (overrideMode = mode, destination = 'main') => {
+    if (!validate(overrideMode)) return;
     setSubmitError('');
     setSubmitting(true);
     try {
-      if (mode === 'login') {
+      if (overrideMode === 'login') {
         await login({ email: form.email, password: form.password });
         await addNotification({
           title: t('notifications.welcomeTitle'),
@@ -91,7 +92,11 @@ export default function AuthScreen({ navigation, route }) {
           message: t('notifications.welcomeMessage'),
         });
       }
-      navigation.replace('Main');
+      if (destination === 'admin') {
+        navigation.replace('AdminDashboard');
+      } else {
+        navigation.replace('Main', { screen: 'Home' });
+      }
     } catch (error) {
       const response = error?.response || {};
       setSubmitError(
@@ -228,16 +233,25 @@ export default function AuthScreen({ navigation, route }) {
                 <SocialButton
                   label="Apple"
                   icon={<Icon family="fa5" name="apple" size={16} color={theme.text} />}
+                  onPress={() => Alert.alert(t('common.unavailable'))}
                 />
                 <SocialButton
                   label="Google"
                   icon={<Icon family="fa5" name="google" size={16} color={theme.text} />}
+                  onPress={() => Alert.alert(t('common.unavailable'))}
                 />
                 <SocialButton
                   label="X"
                   icon={<Icon family="fa5" name="x-twitter" size={16} color={theme.text} />}
+                  onPress={() => Alert.alert(t('common.unavailable'))}
                 />
               </View>
+              <PrimaryButton
+                label={t('auth.adminLogin')}
+                variant="secondary"
+                onPress={() => onSubmit('login', 'admin')}
+                iconComponent={<Icon name="shield-account" size={18} color={theme.text} />}
+              />
               <Text style={styles.terms}>{t('auth.terms')}</Text>
             </View>
           </ScrollView>
@@ -350,6 +364,7 @@ const createStyles = (theme, isRTL, mode) =>
       padding: 18,
       borderWidth: 1,
       borderColor: theme.border,
+      gap: 16,
     },
     terms: {
       color: theme.muted,

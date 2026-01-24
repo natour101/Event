@@ -128,3 +128,8 @@ export const profileApi = {
   updatePassword: payload => api.put('/profile/password', payload),
   uploadAvatar: payload => api.post('/profile/avatar', payload),
 };
+
+export const adminApi = {
+  eventsSummary: () => api.get('/admin/events'),
+  eventRegistrations: eventId => api.get(`/admin/events/${eventId}/registrations`),
+};

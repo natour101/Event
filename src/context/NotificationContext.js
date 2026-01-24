@@ -41,25 +41,31 @@ export function NotificationProvider({ children }) {
 
   const addNotification = useCallback(
     async ({ title, message }) => {
-      const next = [
-        {
-          id: `${Date.now()}`,
-          title,
-          message,
-          read: false,
-          createdAt: new Date().toISOString(),
-        },
-        ...notifications,
-      ];
-      await persist(next);
+      setNotifications(prev => {
+        const next = [
+          {
+            id: `${Date.now()}`,
+            title,
+            message,
+            read: false,
+            createdAt: new Date().toISOString(),
+          },
+          ...prev,
+        ];
+        AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        return next;
+      });
     },
-    [notifications, persist]
+    []
   );
 
   const markAllRead = useCallback(async () => {
-    const next = notifications.map(item => ({ ...item, read: true }));
-    await persist(next);
-  }, [notifications, persist]);
+    setNotifications(prev => {
+      const next = prev.map(item => ({ ...item, read: true }));
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   const clearNotifications = useCallback(async () => {
     await persist([]);

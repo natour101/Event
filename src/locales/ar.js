@@ -20,6 +20,7 @@ export default {
     empty: 'لا توجد بيانات',
     confirm: 'تأكيد',
     cancel: 'إلغاء',
+    unavailable: 'غير متاح حالياً',
   },
   tabs: {
     home: 'الرئيسية',
@@ -49,6 +50,7 @@ export default {
     orContinue: 'أو استمر باستخدام',
     terms: 'بمتابعتك، أنت توافق على شروط الخدمة وسياسة الخصوصية',
     createAccount: 'إنشاء حساب جديد',
+    adminLogin: 'دخول إدارة التطبيق',
     errors: {
       required: 'هذا الحقل مطلوب',
       email: 'أدخل بريدًا إلكترونيًا صحيحًا',
@@ -167,5 +169,12 @@ export default {
     business: 'أعمال',
     tech: 'تقنية',
     fun: 'ترفيه',
+  },
+  admin: {
+    title: 'إدارة الأحداث',
+    subtitle: 'قائمة الأحداث وعدد المسجلين',
+    registrationsCount: 'عدد المسجلين: {{count}}',
+    viewDetails: 'عرض المسجلين',
+    hideDetails: 'إخفاء المسجلين',
   },
 };

@@ -18,6 +18,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { profileApi } from '../services/api';
+import { resolveMediaUrl } from '../utils/media';
 
 const validateEmail = value => /\S+@\S+\.\S+/.test(value);
 
@@ -165,7 +166,7 @@ export default function ProfileScreen() {
   const userName = user?.name || t('profile.noData');
   const userEmail = user?.email || t('profile.noData');
   const userPhone = user?.phone_number || user?.phone || t('profile.noData');
-  const avatarUri = form.profile_image_url || user?.profile_image_url;
+  const avatarUri = resolveMediaUrl(form.profile_image_url || user?.profile_image_url);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
