@@ -24,7 +24,7 @@ const validatePhone = value => /^[0-9+\-()\s]{7,}$/.test(value);
 
 export default function AuthScreen({ navigation, route }) {
   const { t, isRTL } = useLanguage();
-  const { theme } = useTheme();
+  const { theme, mode: themeMode } = useTheme();
   const { login, register } = useAuth();
   const { addNotification } = useNotifications();
   const [mode, setMode] = useState(route?.params?.mode || 'login');
@@ -38,7 +38,10 @@ export default function AuthScreen({ navigation, route }) {
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const styles = useMemo(
+    () => createStyles(theme, isRTL, themeMode),
+    [theme, isRTL, themeMode]
+  );
 
   const onChange = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -72,6 +75,10 @@ export default function AuthScreen({ navigation, route }) {
     try {
       if (mode === 'login') {
         await login({ email: form.email, password: form.password });
+        await addNotification({
+          title: t('notifications.welcomeTitle'),
+          message: t('notifications.welcomeMessage'),
+        });
       } else {
         await register({
           email: form.email,
@@ -206,6 +213,7 @@ export default function AuthScreen({ navigation, route }) {
                   iconComponent={<Icon name="arrow-left" size={18} color={theme.text} />}
                   onPress={onSubmit}
                   style={submitting ? styles.disabledButton : null}
+                  disabled={submitting}
                 />
               </View>
             </View>
@@ -239,14 +247,14 @@ export default function AuthScreen({ navigation, route }) {
   );
 }
 
-const createStyles = (theme, isRTL) =>
+const createStyles = (theme, isRTL, mode) =>
   StyleSheet.create({
     background: {
       flex: 1,
     },
     overlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(17, 10, 7, 0.72)',
+      backgroundColor: mode === 'softDark' ? 'rgba(255, 255, 255, 0.78)' : 'rgba(17, 10, 7, 0.72)',
     },
     container: {
       flex: 1,

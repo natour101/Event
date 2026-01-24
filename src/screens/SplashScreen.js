@@ -10,7 +10,7 @@ const LOGO_URL =
 
 export default function SplashScreen() {
   const navigation = useNavigation();
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
   const { theme } = useTheme();
   const { t } = useLanguage();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -20,11 +20,11 @@ export default function SplashScreen() {
     const timeout = setTimeout(() => {
       navigation.reset({
         index: 0,
-        routes: [{ name: user ? 'Main' : 'Welcome' }],
+        routes: [{ name: 'Main' }],
       });
     }, 2000);
     return () => clearTimeout(timeout);
-  }, [loading, navigation, user]);
+  }, [loading, navigation]);
 
   return (
     <View style={styles.container}>

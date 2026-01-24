@@ -15,6 +15,7 @@ class HomeController extends Controller
     {
         $featured = Event::query()
             ->with(['categoryRelation'])
+            ->withCount(['likes', 'bookings'])
             ->where('is_featured', true)
             ->latest()
             ->take(3)
@@ -22,6 +23,7 @@ class HomeController extends Controller
 
         $nearby = Event::query()
             ->with(['categoryRelation'])
+            ->withCount(['likes', 'bookings'])
             ->whereNotNull('distance_km')
             ->orderBy('distance_km')
             ->take(5)
@@ -29,6 +31,7 @@ class HomeController extends Controller
 
         $newest = Event::query()
             ->with(['categoryRelation'])
+            ->withCount(['likes', 'bookings'])
             ->latest()
             ->take(6)
             ->get();

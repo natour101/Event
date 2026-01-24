@@ -23,6 +23,7 @@ class UpdateEventRequest extends ApiFormRequest
             'end_at' => ['nullable', 'date'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'image_url' => ['nullable', 'url'],
+            'image' => ['nullable', 'image', 'max:4096'],
             'views' => ['nullable', 'integer', 'min:0'],
             'attendees_count' => ['nullable', 'integer', 'min:0'],
             'rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
