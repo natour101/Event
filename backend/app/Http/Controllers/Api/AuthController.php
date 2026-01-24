@@ -17,13 +17,17 @@ class AuthController extends Controller
     public function register(RegisterRequest $request, NotificationService $notification)
     {
         try {
-           $user = User::create([
-    'name' => $request->input('username'),
-    'username' => $request->input('username'),
-    'phone_number' => $request->input('phone_number'),
-    'email' => $request->input('email'),
-    'password' => Hash::make($request->input('password')), // ✅ مهم جدًا
-]);
+            $username = trim((string) $request->input('username'));
+            $email = strtolower(trim((string) $request->input('email')));
+            $phoneNumber = trim((string) $request->input('phone_number'));
+
+            $user = User::create([
+                'name' => $username,
+                'username' => $username,
+                'phone_number' => $phoneNumber,
+                'email' => $email,
+                'password' => Hash::make($request->input('password')),
+            ]);
 
 
             $token = $user->createToken('api')->plainTextToken;
