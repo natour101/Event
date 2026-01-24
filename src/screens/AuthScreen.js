@@ -122,7 +122,7 @@ export default function AuthScreen({ navigation, route }) {
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
           >
-            <View>
+            <View style={styles.card}>
               <View style={styles.logoRow}>
                 <View style={styles.logo}>
                   <Icon name="ticket-confirmation" size={24} color={theme.text} />
@@ -218,7 +218,7 @@ export default function AuthScreen({ navigation, route }) {
               </View>
             </View>
 
-            <View>
+            <View style={styles.footerCard}>
               <View style={styles.dividerRow}>
                 <View style={styles.divider} />
                 <Text style={styles.dividerText}>{t('auth.orContinue')}</Text>
@@ -254,7 +254,8 @@ const createStyles = (theme, isRTL, mode) =>
     },
     overlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: mode === 'softDark' ? 'rgba(255, 255, 255, 0.78)' : 'rgba(17, 10, 7, 0.72)',
+      backgroundColor:
+        mode === 'softDark' ? 'rgba(255, 255, 255, 0.86)' : 'rgba(17, 10, 7, 0.72)',
     },
     container: {
       flex: 1,
@@ -269,6 +270,14 @@ const createStyles = (theme, isRTL, mode) =>
       justifyContent: 'space-between',
       gap: 20,
       paddingBottom: 20,
+    },
+    card: {
+      backgroundColor: theme.surface,
+      borderRadius: 22,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: theme.border,
+      gap: 16,
     },
     logoRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
@@ -307,7 +316,6 @@ const createStyles = (theme, isRTL, mode) =>
       marginTop: 20,
     },
     form: {
-      marginTop: 20,
       gap: 16,
     },
     link: {
@@ -335,6 +343,13 @@ const createStyles = (theme, isRTL, mode) =>
       flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'space-between',
       gap: 10,
+    },
+    footerCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 22,
+      padding: 18,
+      borderWidth: 1,
+      borderColor: theme.border,
     },
     terms: {
       color: theme.muted,
