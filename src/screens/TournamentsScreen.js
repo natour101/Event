@@ -10,14 +10,17 @@ import CategoryPill from '../components/CategoryPill';
 import Icon from '../components/Icon';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenHeader from '../components/ScreenHeader';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { tournamentsApi } from '../services/api';
 
-export default function TournamentsScreen() {
+export default function TournamentsScreen({ navigation }) {
   const { t, isRTL } = useLanguage();
   const { theme } = useTheme();
+  const { user, token } = useAuth();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const isAuthed = Boolean(user || token);
   const [status, setStatus] = useState('live');
   const [tournaments, setTournaments] = useState([]);
   const [error, setError] = useState('');
@@ -46,6 +49,14 @@ export default function TournamentsScreen() {
 
   const heroTournament = tournaments.find(item => item.is_trending) || tournaments[0];
 
+  const handleAuthPress = action => {
+    if (!isAuthed) {
+      navigation.navigate('Profile');
+      return;
+    }
+    action?.();
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <ScreenHeader
@@ -63,7 +74,7 @@ export default function TournamentsScreen() {
             key={item.value}
             label={item.label}
             active={status === item.value}
-            onPress={() => setStatus(item.value)}
+            onPress={() => handleAuthPress(() => setStatus(item.value))}
           />
         ))}
       </View>
@@ -102,7 +113,7 @@ export default function TournamentsScreen() {
                 </Text>
               </View>
             </View>
-            <PrimaryButton label={t('tournaments.watch')} />
+            <PrimaryButton label={t('tournaments.watch')} onPress={handleAuthPress} />
           </View>
         </>
       ) : null}
@@ -131,7 +142,11 @@ export default function TournamentsScreen() {
               <Text style={styles.listMeta}>
                 {t('tournaments.prize')}: {item.prize}
               </Text>
-              <PrimaryButton label={t('tournaments.registerTeam')} variant="secondary" />
+              <PrimaryButton
+                label={t('tournaments.registerTeam')}
+                variant="secondary"
+                onPress={handleAuthPress}
+              />
             </View>
           </View>
         ))}

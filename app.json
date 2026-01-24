@@ -1,4 +1,5 @@
 {
   "name": "Event",
-  "displayName": "Event"
+  "displayName": "Event",
+  "apiBaseUrl": "https://blondell-unsigned-lashonda.ngrok-free.dev"
 }
