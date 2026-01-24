@@ -96,7 +96,7 @@ export default function AuthScreen({ navigation, route }) {
         await login({
           identifier: identifierValue,
           email: isEmail ? emailValue : undefined,
-          username: identifierValue,
+          username: isEmail ? undefined : identifierValue,
           password: passwordValue,
         });
         await addNotification({
