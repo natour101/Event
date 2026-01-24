@@ -38,4 +38,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Event::class);
     }
+
+    public function eventLikes()
+    {
+        return $this->hasMany(EventLike::class);
+    }
+
+    public function eventBookings()
+    {
+        return $this->hasMany(EventBooking::class);
+    }
 }

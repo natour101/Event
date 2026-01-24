@@ -14,9 +14,9 @@ import { useTheme } from '../context/ThemeContext';
 
 export default function WelcomeScreen({ navigation }) {
   const { t, toggleLanguage, isRTL, language } = useLanguage();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
 
-  const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+  const styles = useMemo(() => createStyles(theme, isRTL, mode), [theme, isRTL, mode]);
 
   return (
     <ImageBackground
@@ -63,14 +63,14 @@ export default function WelcomeScreen({ navigation }) {
   );
 }
 
-const createStyles = (theme, isRTL) =>
+const createStyles = (theme, isRTL, mode) =>
   StyleSheet.create({
     background: {
       flex: 1,
     },
     overlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(20, 12, 8, 0.65)',
+      backgroundColor: mode === 'softDark' ? 'rgba(255, 255, 255, 0.72)' : 'rgba(20, 12, 8, 0.65)',
     },
     container: {
       flex: 1,

@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from '../components/Icon';
 import InputField from '../components/InputField';
@@ -24,6 +25,7 @@ export default function ProfileScreen() {
   const { t, isRTL, toggleLanguage } = useLanguage();
   const { theme, mode, toggleMode } = useTheme();
   const { user, logout, updateUser } = useAuth();
+  const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
   const [form, setForm] = useState({
     name: '',
@@ -132,10 +134,24 @@ export default function ProfileScreen() {
     });
     const asset = result?.assets?.[0];
     if (asset?.uri) {
-      const nextUser = { ...user, profile_image_url: asset.uri };
-      updateUser(nextUser);
-      setForm(prev => ({ ...prev, profile_image_url: asset.uri }));
-      setStatus({ loading: false, error: '', success: t('profile.avatarUpdated') });
+      setStatus({ loading: true, error: '', success: '' });
+      try {
+        const payload = new FormData();
+        payload.append('avatar', {
+          uri: asset.uri,
+          type: asset.type || 'image/jpeg',
+          name: asset.fileName || `avatar-${Date.now()}.jpg`,
+        });
+        const response = await profileApi.uploadAvatar(payload);
+        const nextUser = response.data?.user;
+        if (nextUser) {
+          updateUser(nextUser);
+          hydrateForm(nextUser);
+        }
+        setStatus({ loading: false, error: '', success: t('profile.avatarUpdated') });
+      } catch (error) {
+        setStatus({ loading: false, error: error?.message || t('common.error'), success: '' });
+      }
     }
   };
 
@@ -146,9 +162,9 @@ export default function ProfileScreen() {
     setStatus({ loading: false, error: '', success: '' });
   };
 
-  const userName = user?.name || t('profile.name');
-  const userEmail = user?.email || 'user@email.com';
-  const userPhone = user?.phone_number || user?.phone || '+966 5x xxx xxxx';
+  const userName = user?.name || t('profile.noData');
+  const userEmail = user?.email || t('profile.noData');
+  const userPhone = user?.phone_number || user?.phone || t('profile.noData');
   const avatarUri = form.profile_image_url || user?.profile_image_url;
 
   return (
@@ -294,7 +310,14 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <PrimaryButton label={t('profile.logout')} variant="secondary" onPress={logout} />
+      <PrimaryButton
+        label={t('profile.logout')}
+        variant="secondary"
+        onPress={async () => {
+          await logout();
+          navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+        }}
+      />
     </ScrollView>
   );
 }
