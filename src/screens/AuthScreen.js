@@ -87,7 +87,11 @@ export default function AuthScreen({ navigation, route }) {
       const passwordValue =
         overrideMode === 'login' ? form.password.trim() : form.password;
       if (overrideMode === 'login') {
-        await login({ email: emailValue, password: passwordValue });
+        await login({
+          email: emailValue,
+          password: passwordValue,
+          username: form.username.trim() || emailValue,
+        });
         await addNotification({
           title: t('notifications.welcomeTitle'),
           message: t('notifications.welcomeMessage'),
@@ -383,6 +387,7 @@ const createStyles = (theme, isRTL, mode) =>
       flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'space-between',
       gap: 10,
+      flexWrap: 'wrap',
     },
     footerCard: {
       backgroundColor: theme.surface,
