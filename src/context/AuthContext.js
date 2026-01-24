@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { api, authApi } from '../services/api';
 import { registerDeviceToken } from '../services/notifications';
+import { unwrapResource } from '../utils/api';
 import { getJson, removeItem, saveJson, STORAGE_KEYS } from '../utils/storage';
 
 const defaultAuthState = {
@@ -36,7 +37,7 @@ export function AuthProvider({ children }) {
       try {
         api.setToken(storedToken);
         const result = await authApi.me();
-        const freshUser = result.data?.user || storedUser;
+        const freshUser = unwrapResource(result.data?.user) || storedUser;
         setUser(freshUser);
         if (freshUser) {
           await saveJson(STORAGE_KEYS.user, freshUser);
@@ -63,7 +64,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async payload => {
     const result = await authApi.login(payload);
-    const nextUser = result.data?.user || null;
+    const nextUser = unwrapResource(result.data?.user);
     const nextToken = result.data?.token || result.token || null;
     if (nextUser) {
       await saveJson(STORAGE_KEYS.user, nextUser);
@@ -79,7 +80,7 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async payload => {
     const result = await authApi.register(payload);
-    const nextUser = result.data?.user || null;
+    const nextUser = unwrapResource(result.data?.user);
     const nextToken = result.data?.token || result.token || null;
     if (nextUser) {
       await saveJson(STORAGE_KEYS.user, nextUser);

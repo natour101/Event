@@ -22,6 +22,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { categoryApi, eventsApi } from '../services/api';
+import { unwrapCollection } from '../utils/api';
 
 const defaultForm = {
   title: '',
@@ -54,7 +55,7 @@ export default function CreateEventScreen() {
   const fetchCategories = useCallback(async () => {
     try {
       const response = await categoryApi.list();
-      setCategories(response.data?.items || []);
+      setCategories(unwrapCollection(response.data?.items));
     } catch (error) {
       setSubmitError(error?.message || t('common.error'));
     }
