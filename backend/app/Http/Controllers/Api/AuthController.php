@@ -28,7 +28,6 @@ class AuthController extends Controller
 
             $token = $user->createToken('api')->plainTextToken;
 
-            // Notifications can be sent after the device token is registered.
 
             return ApiResponse::success('Registered successfully', [
                 'token' => $token,
@@ -41,24 +40,36 @@ class AuthController extends Controller
     }
 
     public function login(LoginRequest $request)
-    {
-        $identifier = $request->input('identifier');
+{
+    $identifier = trim((string) $request->input('identifier', ''));
+    $password   = (string) $request->input('password', '');
 
-        $user = User::where('email', $identifier)
-            ->orWhere('username', $identifier)
-            ->first();
+    $identifierNormalized = Str::contains($identifier, '@')
+        ? strtolower($identifier)
+        : $identifier;
 
-        if (!$user || !Hash::check($request->input('password'), $user->password)) {
-            return ApiResponse::error('Invalid credentials', ['email' => ['Invalid credentials']], 401);
-        }
+    $user = User::query()
+        ->whereRaw('LOWER(email) = ?', [strtolower($identifierNormalized)])
+        ->orWhere('username', $identifierNormalized)
+        ->first();
 
-        $token = $user->createToken('api')->plainTextToken;
-
-        return ApiResponse::success('Login successful', [
-            'token' => $token,
-            'user' => new UserResource($user),
-        ]);
+    if (!$user || !Hash::check($password, $user->password)) {
+        return ApiResponse::error(
+            'Invalid credentials',
+            ['identifier' => ['Invalid credentials']],
+            401
+        );
     }
+
+   
+
+    $token = $user->createToken('api')->plainTextToken;
+
+    return ApiResponse::success('Login successful', [
+        'token' => $token,
+        'user'  => new UserResource($user),
+    ]);
+}
 
     public function logout()
     {
