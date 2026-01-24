@@ -14,7 +14,7 @@ class CategoryController extends Controller
         $categories = Category::query()->orderBy('name')->get();
 
         return ApiResponse::success('Categories fetched', [
-            'items' => CategoryResource::collection($categories),
+            'items' => CategoryResource::collection($categories)->resolve(),
         ]);
     }
 }

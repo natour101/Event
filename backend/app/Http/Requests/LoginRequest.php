@@ -40,9 +40,8 @@ class LoginRequest extends ApiFormRequest
     public function rules(): array
     {
         return [
-            'identifier' => ['required_without_all:email,username', 'string'],
-            'email' => ['nullable', 'email'],
-            'password' => ['required', 'string'],
+            'identifier' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:6'],
         ];
     }
 }

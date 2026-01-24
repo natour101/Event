@@ -19,6 +19,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { profileApi } from '../services/api';
+import { unwrapResource } from '../utils/api';
 import { resolveMediaUrl } from '../utils/media';
 
 const validateEmail = value => /\S+@\S+\.\S+/.test(value);
@@ -88,7 +89,7 @@ export default function ProfileScreen() {
     setStatus({ loading: true, error: '', success: '' });
     try {
       const response = await profileApi.update(form);
-      const nextUser = response.data?.user;
+      const nextUser = unwrapResource(response.data?.user);
       if (nextUser) {
         updateUser(nextUser);
         hydrateForm(nextUser);
@@ -134,7 +135,7 @@ export default function ProfileScreen() {
           name: asset.fileName || `avatar-${Date.now()}.jpg`,
         });
         const response = await profileApi.uploadAvatar(payload);
-        const nextUser = response.data?.user;
+        const nextUser = unwrapResource(response.data?.user);
         if (nextUser) {
           updateUser(nextUser);
           hydrateForm(nextUser);
