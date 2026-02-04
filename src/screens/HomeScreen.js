@@ -114,16 +114,7 @@ export default function HomeScreen({ navigation }) {
         </Pressable>
       </Pressable>
 
-      <SectionHeader title={t('home.stats.title')} />
-      <View style={styles.statsRow}>
-        {statItems.map(item => (
-          <View key={item.key} style={styles.statCard}>
-            <Text style={styles.statValue}>{loading ? '—' : item.value}</Text>
-            <Text style={styles.statLabel}>{item.label}</Text>
-          </View>
-        ))}
-      </View>
-
+    
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       {loading ? <Text style={styles.loadingText}>{t('common.loading')}</Text> : null}
 

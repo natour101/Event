@@ -28,6 +28,7 @@ export default function AuthScreen({ navigation, route }) {
   const { theme, mode: themeMode } = useTheme();
   const { login, register } = useAuth();
   const { addNotification } = useNotifications();
+
   const [mode, setMode] = useState(route?.params?.mode || 'login');
   const [form, setForm] = useState({
     email: '',
@@ -35,7 +36,7 @@ export default function AuthScreen({ navigation, route }) {
     username: '',
     phone: '',
   });
-  const [adminCode, setAdminCode] = useState('');
+
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -52,90 +53,57 @@ export default function AuthScreen({ navigation, route }) {
 
   const validate = (targetMode = mode) => {
     const nextErrors = {};
-    const identifierValue = form.email.trim().replace(/\s+/g, '');
+    const emailValue = form.email.trim().replace(/\s+/g, '');
     const usernameValue = form.username.trim();
     const phoneValue = form.phone.trim();
-    if (!identifierValue) nextErrors.email = t('auth.errors.required');
-    if (targetMode === 'register') {
-      if (identifierValue && !validateEmail(identifierValue)) {
-        nextErrors.email = t('auth.errors.email');
-      }
-    } else if (identifierValue.includes('@') && !validateEmail(identifierValue)) {
+
+    if (!emailValue) nextErrors.email = t('auth.errors.required');
+    if (emailValue && !validateEmail(emailValue)) {
       nextErrors.email = t('auth.errors.email');
     }
+
     if (!form.password) nextErrors.password = t('auth.errors.required');
     if (form.password && form.password.length < 6) {
       nextErrors.password = t('auth.errors.password');
     }
+
     if (targetMode === 'register') {
       if (!usernameValue) nextErrors.username = t('auth.errors.required');
+
       if (!phoneValue) nextErrors.phone = t('auth.errors.required');
       if (phoneValue && !validatePhone(phoneValue)) {
         nextErrors.phone = t('auth.errors.phone');
       }
     }
+
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
 
-  const onSubmit = async (overrideMode = mode, destination = 'main') => {
-    if (!validate(overrideMode)) return;
-    if (destination === 'admin' && adminCode.trim() !== '123456') {
-      setSubmitError(t('auth.adminCodeError'));
-      return;
+const onSubmit = async () => {
+  try {
+    if (mode === 'login') {
+      await login({
+        email: form.email.trim().toLowerCase(),
+        password: form.password.trim(),
+      });
+
+      navigation.replace('Main'); // ✅ Home
+    } else {
+      await register({
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+        username: form.username.trim(),
+        phone_number: form.phone.trim(),
+      });
+
+      setMode('login');
+      setForm({ email: form.email, password: '', username: '', phone: '' });
     }
-    setSubmitError('');
-    setSubmitting(true);
-    try {
-      const identifierValue = form.email.trim().replace(/\s+/g, '');
-      const emailValue = identifierValue.toLowerCase();
-      const passwordValue =
-        overrideMode === 'login' ? form.password.trim() : form.password;
-      if (overrideMode === 'login') {
-        const isEmail = validateEmail(identifierValue);
-        await login({
-          identifier: identifierValue,
-          email: isEmail ? emailValue : undefined,
-          username: isEmail ? undefined : identifierValue,
-          password: passwordValue,
-        });
-        await addNotification({
-          title: t('notifications.welcomeTitle'),
-          message: t('notifications.welcomeMessage'),
-        });
-      } else {
-        await register({
-          email: emailValue,
-          password: passwordValue,
-          username: form.username.trim(),
-          phone_number: form.phone.trim(),
-        });
-        await addNotification({
-          title: t('notifications.welcomeTitle'),
-          message: t('notifications.welcomeMessage'),
-        });
-      }
-      if (destination === 'admin') {
-        navigation.replace('AdminDashboard');
-      } else {
-        navigation.replace('Main', { screen: 'Home' });
-      }
-    } catch (error) {
-      const response = error?.response || {};
-      const errorMessages = response?.errors
-        ? Object.values(response.errors).flat()
-        : [];
-      setSubmitError(
-        errorMessages[0] ||
-          response?.message ||
-          response?.error ||
-          error?.message ||
-          'Request failed'
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  } catch (e) {
+    setSubmitError(e.message || 'Request failed');
+  }
+};
 
   return (
     <ImageBackground
@@ -197,6 +165,7 @@ export default function AuthScreen({ navigation, route }) {
                     {errors.username ? (
                       <Text style={styles.errorText}>{errors.username}</Text>
                     ) : null}
+
                     <InputField
                       label={t('auth.phone')}
                       placeholder={t('auth.phonePlaceholder')}
@@ -212,13 +181,10 @@ export default function AuthScreen({ navigation, route }) {
                     ) : null}
                   </>
                 ) : null}
+
                 <InputField
-                  label={mode === 'login' ? t('auth.loginIdentifier') : t('auth.email')}
-                  placeholder={
-                    mode === 'login'
-                      ? t('auth.loginIdentifierPlaceholder')
-                      : t('auth.emailPlaceholder')
-                  }
+                  label={t('auth.email')}
+                  placeholder={t('auth.emailPlaceholder')}
                   value={form.email}
                   onChangeText={value => onChange('email', value)}
                   autoCapitalize="none"
@@ -229,6 +195,7 @@ export default function AuthScreen({ navigation, route }) {
                 {errors.email ? (
                   <Text style={styles.errorText}>{errors.email}</Text>
                 ) : null}
+
                 <InputField
                   label={t('auth.password')}
                   placeholder={t('auth.passwordPlaceholder')}
@@ -238,19 +205,24 @@ export default function AuthScreen({ navigation, route }) {
                   autoCapitalize="none"
                   autoCorrect={false}
                   leadingIcon={<Icon name="eye-outline" size={18} color={theme.text} />}
-                  trailingIcon={<Icon name="emoticon-outline" size={18} color={theme.text} />}
+                  trailingIcon={
+                    <Icon name="emoticon-outline" size={18} color={theme.text} />
+                  }
                 />
                 {errors.password ? (
                   <Text style={styles.errorText}>{errors.password}</Text>
                 ) : null}
+
                 {submitError ? <Text style={styles.errorText}>{submitError}</Text> : null}
+
                 {mode === 'login' ? (
                   <Text style={styles.link}>{t('auth.forgot')}</Text>
                 ) : null}
+
                 <PrimaryButton
                   label={mode === 'login' ? t('common.login') : t('common.register')}
                   iconComponent={<Icon name="arrow-left" size={18} color={theme.text} />}
-                  onPress={onSubmit}
+                  onPress={() => onSubmit(mode)}
                   style={submitting ? styles.disabledButton : null}
                   disabled={submitting}
                 />
@@ -263,6 +235,7 @@ export default function AuthScreen({ navigation, route }) {
                 <Text style={styles.dividerText}>{t('auth.orContinue')}</Text>
                 <View style={styles.divider} />
               </View>
+
               <View style={styles.socialRow}>
                 <SocialButton
                   label={t('auth.social.apple')}
@@ -280,19 +253,7 @@ export default function AuthScreen({ navigation, route }) {
                   onPress={() => Alert.alert(t('common.unavailable'))}
                 />
               </View>
-              <InputField
-                label={t('auth.adminCode')}
-                placeholder={t('auth.adminCodePlaceholder')}
-                value={adminCode}
-                onChangeText={value => setAdminCode(value)}
-                keyboardType="numeric"
-              />
-              <PrimaryButton
-                label={t('auth.adminLogin')}
-                variant="secondary"
-                onPress={() => onSubmit('login', 'admin')}
-                iconComponent={<Icon name="shield-account" size={18} color={theme.text} />}
-              />
+
               <Text style={styles.terms}>{t('auth.terms')}</Text>
             </View>
           </ScrollView>
@@ -304,9 +265,7 @@ export default function AuthScreen({ navigation, route }) {
 
 const createStyles = (theme, isRTL, mode) =>
   StyleSheet.create({
-    background: {
-      flex: 1,
-    },
+    background: { flex: 1 },
     overlay: {
       ...StyleSheet.absoluteFillObject,
       backgroundColor:
@@ -317,9 +276,7 @@ const createStyles = (theme, isRTL, mode) =>
       justifyContent: 'space-between',
       padding: 24,
     },
-    keyboard: {
-      flex: 1,
-    },
+    keyboard: { flex: 1 },
     scrollContent: {
       flexGrow: 1,
       justifyContent: 'space-between',
@@ -340,13 +297,10 @@ const createStyles = (theme, isRTL, mode) =>
       gap: 16,
       marginTop: 12,
     },
-    headerText: {
-      flex: 1,
-      flexShrink: 1,
-    },
+    headerText: { flex: 1, flexShrink: 1 },
     logo: {
-      width: 56,
-      height: 56,
+      width: 0,
+      height: 0,
       borderRadius: 18,
       backgroundColor: theme.accent,
       alignItems: 'center',
@@ -370,9 +324,7 @@ const createStyles = (theme, isRTL, mode) =>
       gap: 12,
       marginTop: 20,
     },
-    form: {
-      gap: 16,
-    },
+    form: { gap: 16 },
     link: {
       color: theme.accent,
       fontSize: 13,
@@ -385,15 +337,8 @@ const createStyles = (theme, isRTL, mode) =>
       gap: 12,
       marginBottom: 16,
     },
-    divider: {
-      flex: 1,
-      height: 1,
-      backgroundColor: theme.border,
-    },
-    dividerText: {
-      color: theme.muted,
-      fontSize: 12,
-    },
+    divider: { flex: 1, height: 1, backgroundColor: theme.border },
+    dividerText: { color: theme.muted, fontSize: 12 },
     socialRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'space-between',
@@ -420,7 +365,5 @@ const createStyles = (theme, isRTL, mode) =>
       fontSize: 12,
       textAlign: isRTL ? 'right' : 'left',
     },
-    disabledButton: {
-      opacity: 0.7,
-    },
+    disabledButton: { opacity: 0.7 },
   });

@@ -24,12 +24,16 @@ import { resolveMediaUrl } from '../utils/media';
 
 const validateEmail = value => /\S+@\S+\.\S+/.test(value);
 
+const COVER_URL =
+  'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80';
+
 export default function ProfileScreen() {
   const { t, isRTL, toggleLanguage } = useLanguage();
   const { theme, mode, toggleMode } = useTheme();
   const { user, token, logout, updateUser } = useAuth();
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
+
   const [form, setForm] = useState({
     name: '',
     username: '',
@@ -37,11 +41,13 @@ export default function ProfileScreen() {
     phone_number: '',
     profile_image_url: '',
   });
+
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     password: '',
     passwordConfirmation: '',
   });
+
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ loading: false, error: '', success: '' });
 
@@ -56,30 +62,21 @@ export default function ProfileScreen() {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      hydrateForm(user);
-    }
+    if (user) hydrateForm(user);
   }, [user, hydrateForm]);
 
   const goToWelcome = () => {
     const rootNavigation = navigation.getParent();
-    if (rootNavigation) {
-      rootNavigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
-    } else {
-      navigation.navigate('Welcome');
-    }
+    if (rootNavigation) rootNavigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+    else navigation.navigate('Welcome');
   };
 
-  const onChange = (key, value) => {
-    setForm(prev => ({ ...prev, [key]: value }));
-  };
+  const onChange = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
 
   const validateProfile = () => {
     const nextErrors = {};
     if (!form.name) nextErrors.name = t('auth.errors.required');
-    if (form.email && !validateEmail(form.email)) {
-      nextErrors.email = t('auth.errors.email');
-    }
+    if (form.email && !validateEmail(form.email)) nextErrors.email = t('auth.errors.email');
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -120,30 +117,28 @@ export default function ProfileScreen() {
   };
 
   const onPickAvatar = async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      selectionLimit: 1,
-    });
+    const result = await launchImageLibrary({ mediaType: 'photo', selectionLimit: 1 });
     const asset = result?.assets?.[0];
-    if (asset?.uri) {
-      setStatus({ loading: true, error: '', success: '' });
-      try {
-        const payload = new FormData();
-        payload.append('avatar', {
-          uri: asset.uri,
-          type: asset.type || 'image/jpeg',
-          name: asset.fileName || `avatar-${Date.now()}.jpg`,
-        });
-        const response = await profileApi.uploadAvatar(payload);
-        const nextUser = unwrapResource(response.data?.user);
-        if (nextUser) {
-          updateUser(nextUser);
-          hydrateForm(nextUser);
-        }
-        setStatus({ loading: false, error: '', success: t('profile.avatarUpdated') });
-      } catch (error) {
-        setStatus({ loading: false, error: error?.message || t('common.error'), success: '' });
+    if (!asset?.uri) return;
+
+    setStatus({ loading: true, error: '', success: '' });
+    try {
+      const payload = new FormData();
+      payload.append('avatar', {
+        uri: asset.uri,
+        type: asset.type || 'image/jpeg',
+        name: asset.fileName || `avatar-${Date.now()}.jpg`,
+      });
+
+      const response = await profileApi.uploadAvatar(payload);
+      const nextUser = unwrapResource(response.data?.user);
+      if (nextUser) {
+        updateUser(nextUser);
+        hydrateForm(nextUser);
       }
+      setStatus({ loading: false, error: '', success: t('profile.avatarUpdated') });
+    } catch (error) {
+      setStatus({ loading: false, error: error?.message || t('common.error'), success: '' });
     }
   };
 
@@ -172,7 +167,7 @@ export default function ProfileScreen() {
         <View style={styles.guestContent}>
           <View style={styles.guestCard}>
             <View style={styles.guestIcon}>
-              <Icon name="account-circle-outline" size={36} color={theme.text} />
+              <Icon name="account-circle-outline" size={38} color={theme.text} />
             </View>
             <Text style={styles.guestTitle}>{t('profile.guestTitle')}</Text>
             <Text style={styles.guestSubtitle}>{t('profile.guestSubtitle')}</Text>
@@ -186,43 +181,70 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <ScreenHeader title={t('profile.title')} />
-      <View style={styles.profileHeader}>
-        <View style={styles.headerTop}>
-          <View style={styles.profileInfo}>
-            <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
-              {userName}
-            </Text>
-            <Text style={styles.subtitle} numberOfLines={1} ellipsizeMode="tail">
-              {userEmail}
-            </Text>
-            <Text style={styles.meta} numberOfLines={1} ellipsizeMode="tail">
-              {userPhone}
-            </Text>
+
+      {/* Cover */}
+      <View style={styles.coverWrap}>
+        <ImageBackground source={{ uri: COVER_URL }} style={styles.cover} resizeMode="cover">
+          <View style={styles.coverOverlay} />
+
+          {/* Profile Card */}
+          <View style={styles.profileCard}>
+            <View style={styles.profileTop}>
+              <View style={styles.avatar}>
+                {avatarUri ? (
+                  <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+                ) : (
+                  <Icon name="account" size={38} color={theme.text} />
+                )}
+              </View>
+
+              <View style={styles.profileInfo}>
+                <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+                  {userName}
+                </Text>
+                <View style={styles.metaRow}>
+                  <Icon name="email-outline" size={16} color={theme.muted} />
+                  <Text style={styles.metaText} numberOfLines={1}>
+                    {userEmail}
+                  </Text>
+                </View>
+                <View style={styles.metaRow}>
+                  <Icon name="phone-outline" size={16} color={theme.muted} />
+                  <Text style={styles.metaText} numberOfLines={1}>
+                    {userPhone}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.quickActions}>
+              <Pressable style={styles.chip} onPress={onPickAvatar}>
+                <Icon name="camera-outline" size={18} color={theme.accent} />
+                <Text style={styles.chipText}>{t('profile.pickAvatar')}</Text>
+              </Pressable>
+
+              <Pressable style={styles.chip} onPress={toggleLanguage}>
+                <Icon name="translate" size={18} color={theme.accent} />
+                <Text style={styles.chipText}>{t('profile.changeLanguage')}</Text>
+              </Pressable>
+
+              <Pressable style={styles.chip} onPress={onResetProfile}>
+                <Icon name="restore" size={18} color={theme.accent} />
+                <Text style={styles.chipText}>{t('profile.reset')}</Text>
+              </Pressable>
+            </View>
+
+            {(status.error || status.success) ? (
+              <View style={styles.noticeWrap}>
+                {status.error ? <Text style={styles.errorText}>{status.error}</Text> : null}
+                {status.success ? <Text style={styles.successText}>{status.success}</Text> : null}
+              </View>
+            ) : null}
           </View>
-          <View style={styles.avatar}>
-            {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
-            ) : (
-              <Icon name="account" size={36} color={theme.text} />
-            )}
-          </View>
-        </View>
-        <View style={styles.quickActions}>
-          <Pressable style={styles.quickAction} onPress={onPickAvatar}>
-            <Icon name="camera-outline" size={18} color={theme.accent} />
-            <Text style={styles.quickActionText}>{t('profile.pickAvatar')}</Text>
-          </Pressable>
-          <Pressable style={styles.quickAction} onPress={toggleLanguage}>
-            <Icon name="translate" size={18} color={theme.accent} />
-            <Text style={styles.quickActionText}>{t('profile.changeLanguage')}</Text>
-          </Pressable>
-          <Pressable style={styles.quickAction} onPress={onResetProfile}>
-            <Icon name="restore" size={18} color={theme.accent} />
-            <Text style={styles.quickActionText}>{t('profile.reset')}</Text>
-          </Pressable>
-        </View>
+        </ImageBackground>
       </View>
 
+      {/* Account Settings */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('profile.accountSettings')}</Text>
         <View style={styles.card}>
@@ -232,11 +254,13 @@ export default function ProfileScreen() {
             onChangeText={value => onChange('name', value)}
           />
           {errors.name ? <Text style={styles.errorText}>{errors.name}</Text> : null}
+
           <InputField
             label={t('profile.username')}
             value={form.username}
             onChangeText={value => onChange('username', value)}
           />
+
           <InputField
             label={t('profile.email')}
             value={form.email}
@@ -245,22 +269,23 @@ export default function ProfileScreen() {
             keyboardType="email-address"
           />
           {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+
           <InputField
             label={t('profile.phone')}
             value={form.phone_number}
             onChangeText={value => onChange('phone_number', value)}
             keyboardType="phone-pad"
           />
+
           <PrimaryButton
             label={status.loading ? t('common.loading') : t('common.save')}
             onPress={onSaveProfile}
             style={status.loading ? styles.disabledButton : null}
           />
-          {status.error ? <Text style={styles.errorText}>{status.error}</Text> : null}
-          {status.success ? <Text style={styles.successText}>{status.success}</Text> : null}
         </View>
       </View>
 
+      {/* Password */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('profile.password')}</Text>
         <View style={styles.card}>
@@ -268,9 +293,7 @@ export default function ProfileScreen() {
             label={t('profile.currentPassword')}
             secureTextEntry
             value={passwordForm.currentPassword}
-            onChangeText={value =>
-              setPasswordForm(prev => ({ ...prev, currentPassword: value }))
-            }
+            onChangeText={value => setPasswordForm(prev => ({ ...prev, currentPassword: value }))}
           />
           <InputField
             label={t('profile.newPassword')}
@@ -286,6 +309,7 @@ export default function ProfileScreen() {
               setPasswordForm(prev => ({ ...prev, passwordConfirmation: value }))
             }
           />
+
           <PrimaryButton
             label={t('profile.updatePassword')}
             variant="secondary"
@@ -294,11 +318,15 @@ export default function ProfileScreen() {
         </View>
       </View>
 
+      {/* Theme */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('profile.theme')}</Text>
         <View style={styles.card}>
           <View style={styles.row}>
-            <Text style={styles.label}>{t('profile.themeToggle')}</Text>
+            <View style={styles.rowLeft}>
+              <Icon name="weather-night" size={18} color={theme.muted} />
+              <Text style={styles.label}>{t('profile.themeToggle')}</Text>
+            </View>
             <Switch
               value={mode === 'softDark'}
               onValueChange={toggleMode}
@@ -309,15 +337,20 @@ export default function ProfileScreen() {
         </View>
       </View>
 
+      {/* Language */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('profile.language')}</Text>
         <View style={styles.card}>
           <View style={styles.row}>
-            <Text style={styles.label}>{t('common.language')}</Text>
+            <View style={styles.rowLeft}>
+              <Icon name="translate" size={18} color={theme.muted} />
+              <Text style={styles.label}>{t('common.language')}</Text>
+            </View>
             <Text style={styles.value}>
               {t('common.arabic')} / {t('common.english')}
             </Text>
           </View>
+
           <PrimaryButton
             label={t('profile.changeLanguage')}
             variant="secondary"
@@ -326,14 +359,17 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <PrimaryButton
-        label={t('profile.logout')}
-        variant="secondary"
-        onPress={async () => {
-          await logout();
-          goToWelcome();
-        }}
-      />
+      {/* Logout */}
+      <View style={styles.logoutWrap}>
+        <PrimaryButton
+          label={t('profile.logout')}
+          variant="secondary"
+          onPress={async () => {
+            await logout();
+            goToWelcome();
+          }}
+        />
+      </View>
     </ScrollView>
   );
 }
@@ -344,18 +380,19 @@ const createStyles = (theme, isRTL) =>
       flex: 1,
       backgroundColor: theme.background,
     },
-    guestBackground: {
-      flex: 1,
+    content: {
+      padding: 18,
+      paddingBottom: 36,
+      gap: 16,
     },
+
+    /* Guest */
+    guestBackground: { flex: 1 },
     guestOverlay: {
       ...StyleSheet.absoluteFillObject,
       backgroundColor: 'rgba(0, 0, 0, 0.45)',
     },
-    guestContent: {
-      flex: 1,
-      justifyContent: 'center',
-      padding: 24,
-    },
+    guestContent: { flex: 1, justifyContent: 'center', padding: 24 },
     guestCard: {
       backgroundColor: theme.surface,
       borderRadius: 22,
@@ -366,9 +403,9 @@ const createStyles = (theme, isRTL) =>
       borderColor: theme.border,
     },
     guestIcon: {
-      width: 72,
-      height: 72,
-      borderRadius: 22,
+      width: 74,
+      height: 74,
+      borderRadius: 24,
       backgroundColor: theme.surfaceLight,
       alignItems: 'center',
       justifyContent: 'center',
@@ -376,7 +413,7 @@ const createStyles = (theme, isRTL) =>
     guestTitle: {
       color: theme.text,
       fontSize: 20,
-      fontWeight: '700',
+      fontWeight: '800',
       textAlign: 'center',
     },
     guestSubtitle: {
@@ -385,28 +422,39 @@ const createStyles = (theme, isRTL) =>
       textAlign: 'center',
       marginBottom: 8,
     },
-    content: {
-      padding: 20,
-      gap: 16,
-      paddingBottom: 32,
-    },
-    profileHeader: {
-      backgroundColor: theme.surface,
-      borderRadius: 20,
-      padding: 16,
-      gap: 16,
+
+    /* Cover + Profile Card */
+    coverWrap: {
+      borderRadius: 22,
+      overflow: 'hidden',
       borderWidth: 1,
       borderColor: theme.border,
     },
-    headerTop: {
+    cover: {
+      minHeight: 230,
+      justifyContent: 'flex-end',
+    },
+    coverOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+    },
+    profileCard: {
+      margin: 14,
+      borderRadius: 20,
+      backgroundColor: theme.surface,
+      borderWidth: 1,
+      borderColor: theme.border,
+      padding: 14,
+      gap: 12,
+    },
+    profileTop: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 16,
+      gap: 14,
     },
     avatar: {
-      width: 84,
-      height: 84,
+      width: 86,
+      height: 86,
       borderRadius: 28,
       backgroundColor: theme.surfaceLight,
       alignItems: 'center',
@@ -415,93 +463,124 @@ const createStyles = (theme, isRTL) =>
       borderWidth: 2,
       borderColor: theme.accent,
     },
-    avatarImage: {
-      width: '100%',
-      height: '100%',
-    },
+    avatarImage: { width: '100%', height: '100%' },
     profileInfo: {
       flex: 1,
       alignItems: isRTL ? 'flex-end' : 'flex-start',
+      gap: 6,
     },
     name: {
       color: theme.text,
       fontSize: 20,
-      fontWeight: '700',
+      fontWeight: '900',
+      letterSpacing: 0.2,
+      maxWidth: '100%',
     },
-    subtitle: {
-      color: theme.muted,
-      fontSize: 13,
-      marginTop: 4,
-      flexShrink: 1,
-    },
-    meta: {
-      color: theme.textDark,
-      fontSize: 12,
-      marginTop: 4,
-      flexShrink: 1,
-    },
-    quickActions: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
-      flexWrap: 'wrap',
-      gap: 12,
-    },
-    quickAction: {
+    metaRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 8,
-      backgroundColor: theme.surfaceLight,
+      maxWidth: '100%',
+    },
+    metaText: {
+      color: theme.textDark,
+      fontSize: 13,
+      flexShrink: 1,
+    },
+
+    /* Chips */
+    quickActions: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexWrap: 'wrap',
+      gap: 10,
+    },
+    chip: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      gap: 8,
       paddingVertical: 10,
       paddingHorizontal: 12,
-      borderRadius: 14,
+      borderRadius: 999,
+      backgroundColor: theme.surfaceLight,
+      borderWidth: 1,
+      borderColor: theme.border,
     },
-    quickActionText: {
+    chipText: {
       color: theme.text,
       fontSize: 13,
-      fontWeight: '600',
+      fontWeight: '700',
     },
-    section: {
-      gap: 12,
+
+    noticeWrap: {
+      borderRadius: 14,
+      backgroundColor: theme.surfaceLight,
+      padding: 10,
+      borderWidth: 1,
+      borderColor: theme.border,
+      gap: 6,
     },
+
+    /* Sections */
+    section: { gap: 10 },
     sectionTitle: {
       color: theme.text,
-      fontSize: 16,
-      fontWeight: '700',
+      fontSize: 15,
+      fontWeight: '900',
       textAlign: isRTL ? 'right' : 'left',
+      paddingHorizontal: 2,
     },
     card: {
       backgroundColor: theme.surface,
       borderRadius: 18,
       padding: 16,
       gap: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
     },
     row: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       width: '100%',
+      gap: 10,
+    },
+    rowLeft: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      alignItems: 'center',
+      gap: 10,
+      flexShrink: 1,
     },
     label: {
       color: theme.text,
       fontSize: 14,
-      fontWeight: '600',
+      fontWeight: '800',
       flexShrink: 1,
     },
     value: {
       color: theme.textDark,
       fontSize: 13,
+      fontWeight: '600',
       flexShrink: 1,
     },
+
+    /* Messages */
     errorText: {
       color: theme.warning,
       fontSize: 12,
+      fontWeight: '600',
       textAlign: isRTL ? 'right' : 'left',
     },
     successText: {
       color: theme.accent,
       fontSize: 12,
+      fontWeight: '700',
       textAlign: isRTL ? 'right' : 'left',
     },
-    disabledButton: {
-      opacity: 0.7,
+
+    disabledButton: { opacity: 0.7 },
+
+    logoutWrap: {
+      marginTop: 6,
+      paddingTop: 4,
     },
   });

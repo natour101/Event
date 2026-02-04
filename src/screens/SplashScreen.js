@@ -1,12 +1,15 @@
 import React, { useEffect, useMemo } from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
-
-const LOGO_URL =
-  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=300&q=80';
 
 export default function SplashScreen() {
   const navigation = useNavigation();
@@ -17,23 +20,35 @@ export default function SplashScreen() {
 
   useEffect(() => {
     if (loading) return;
+
     const timeout = setTimeout(() => {
       navigation.reset({
         index: 0,
         routes: [{ name: 'Main' }],
       });
     }, 2000);
+
     return () => clearTimeout(timeout);
   }, [loading, navigation]);
 
   return (
     <View style={styles.container}>
       <View style={styles.logoWrap}>
-        <Image source={{ uri: LOGO_URL }} style={styles.logo} resizeMode="cover" />
+        <Image
+          source={require('../assets/images/image.png')}
+          style={styles.logo}
+          resizeMode="cover"
+        />
       </View>
+
       <Text style={styles.title}>{t('splash.title')}</Text>
       <Text style={styles.subtitle}>{t('splash.subtitle')}</Text>
-      <ActivityIndicator size="large" color={theme.accent} style={styles.loader} />
+
+      <ActivityIndicator
+        size="large"
+        color={theme.accent}
+        style={styles.loader}
+      />
     </View>
   );
 }

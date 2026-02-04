@@ -179,7 +179,7 @@ export default {
   },
   splash: {
     title: 'Event',
-    subtitle: 'Checking your login status...',
+    subtitle: 'Discover, create, and join the best events',
   },
   categories: {
     all: 'All',

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import {
+  Image,
   ImageBackground,
   SafeAreaView,
   ScrollView,
@@ -20,37 +21,45 @@ export default function WelcomeScreen({ navigation }) {
 
   return (
     <ImageBackground
-      source={{
-        uri: 'https://images.unsplash.com/photo-1507874457470-272b3c8d8ee2?auto=format&fit=crop&w=1200&q=80',
-      }}
+      source={require('../assets/images/logo.png')}
       style={styles.background}
     >
       <View style={styles.overlay} />
+
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.centerContent}>
             <View style={styles.card}>
               <View style={styles.logo}>
-                <Icon name="ticket-confirmation" size={30} color={theme.text} />
+                <Image
+                  source={require('../assets/images/image.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
               </View>
+
               <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
                 {t('welcome.title')}
               </Text>
+
               <Text style={styles.subtitle} numberOfLines={3} ellipsizeMode="tail">
                 {t('welcome.subtitle')}
               </Text>
             </View>
           </View>
+
           <View style={styles.actionsCard}>
             <PrimaryButton
               label={t('common.register')}
               onPress={() => navigation.navigate('Auth', { mode: 'register' })}
             />
+
             <PrimaryButton
               label={t('common.login')}
               variant="secondary"
               onPress={() => navigation.navigate('Auth', { mode: 'login' })}
             />
+
             <View style={styles.languageRow}>
               <Icon name="earth" size={16} color={theme.muted} />
               <Text style={styles.languageText} onPress={toggleLanguage}>
@@ -73,7 +82,9 @@ const createStyles = (theme, isRTL, mode) =>
     overlay: {
       ...StyleSheet.absoluteFillObject,
       backgroundColor:
-        mode === 'softDark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(20, 12, 8, 0.65)',
+        mode === 'softDark'
+          ? 'rgb(255, 255, 255)'
+          : 'rgb(20, 12, 8)',
     },
     container: {
       flex: 1,
@@ -102,8 +113,8 @@ const createStyles = (theme, isRTL, mode) =>
       borderColor: theme.border,
     },
     logo: {
-      width: 80,
-      height: 80,
+      width: 0,
+      height: 0,
       borderRadius: 24,
       backgroundColor: theme.accent,
       alignItems: 'center',
@@ -113,6 +124,10 @@ const createStyles = (theme, isRTL, mode) =>
       shadowOpacity: 0.35,
       shadowOffset: { width: 0, height: 6 },
       shadowRadius: 12,
+    },
+    logoImage: {
+      width: 0,
+      height: 0,
     },
     title: {
       color: theme.text,

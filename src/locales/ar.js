@@ -179,7 +179,7 @@ export default {
   },
   splash: {
     title: 'Event',
-    subtitle: 'جاري التحقق من حالة تسجيل الدخول...',
+    subtitle:  'اكتشف، أنشئ، وشارك في أفضل الفعاليات',
   },
   categories: {
     all: 'الكل',
